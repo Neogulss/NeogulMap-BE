@@ -1,0 +1,111 @@
+# =========================
+# Gradle
+# =========================
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# =========================
+# STS / Eclipse
+# =========================
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# =========================
+# NetBeans
+# =========================
+/nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# OS
+# =========================
+# Mac
+.DS_Store
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# =========================
+# Spring Boot / Java
+# =========================
+# Logs
+*.log
+logs/
+
+# Environment / Secret config
+# DB 계정, API 키 등 민감정보
+/config/datasource/*.yml
+/application-local.yml
+/application-dev.yml
+/application-prod.yml
+.env
+
+# =========================
+# Maven / Gradle Build Artifacts
+# =========================
+# Gradle
+.gradle/
+build/
+# Maven
+/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# =========================
+# IDE / Tool Specific Cache
+# =========================
+# Eclipse
+/.classpath
+/.project
+/.settings/
+/bin/
+/tmp/
+/*.tmp
+
+# VS Code
+/.vscode/
+
+# IntelliJ
+/.idea/
+/out/
+
+# Others
+*.class
+*.jar
+*.war
+*.ear
