@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neogulss.neogulmap.district.mapper.DistrictMapper">
+  <select id="getDistrictRecommendList" parameterType="com.neogulss.neogulmap.district.dto.DistrictDTO$Request"
+    resultType="com.neogulss.neogulmap.district.dto.DistrictDTO$DistrictRecommendList">
+    SELECT CD.district_code,
+           CD.district_name,
+           CD.initial_capital,
+           CD.x_coordinate,
+           CD.y_coordinate,
+           CD.AREA,
+           DB.store_count
+    FROM COMMERCIAL_DISTRICT CD
+           LEFT OUTER JOIN DISTRICT_BUSINESS DB ON CD.district_code = DB.district_code
+    WHERE CD.initial_capital = #{initial_capital}
+      AND DB.detail_category_name = #{detail_category_name}
+  </select>
+</mapper>

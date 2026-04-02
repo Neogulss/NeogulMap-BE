@@ -11,5 +11,7 @@ spring:
     show-sql: false
 
 mybatis:
+  type-aliases-package: com.neogulss.neogulmap
+  mapper-locations: classpath:/mapper/**/*.xml
   configuration:
     map-underscore-to-camel-case: true
