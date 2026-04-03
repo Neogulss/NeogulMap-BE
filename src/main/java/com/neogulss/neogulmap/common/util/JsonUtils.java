@@ -1,10 +1,10 @@
 package com.neogulss.neogulmap.common.util;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.StringWriter;
 import lombok.extern.slf4j.Slf4j;
-import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public final class JsonUtils {

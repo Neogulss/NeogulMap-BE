@@ -1,6 +1,6 @@
 package com.neogulss.neogulmap.district.service;
 
-import com.neogulss.neogulmap.common.util.JsonUtils;
+
 import com.neogulss.neogulmap.district.dto.DistrictDTO;
 import com.neogulss.neogulmap.district.dto.DistrictDTO.DistrictRecommendList;
 import com.neogulss.neogulmap.district.mapper.DistrictMapper;
