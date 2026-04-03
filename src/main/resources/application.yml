@@ -40,3 +40,24 @@ spring:
       idle-timeout: 30000
       max-lifetime: 1800000
       connection-timeout: 30000
+---
+# 기존 application.yml 에 추가
+seoul:
+  api:
+    base-url: http://openapi.seoul.go.kr:8088
+    key: ${SEOUL_API_KEY}          # IntelliJ Run > Edit Configurations > Environment variables
+    page-size: 1000
+
+# Feign 로그 (개발 중 API 요청/응답 확인용, 운영에선 NONE으로)
+logging:
+  level:
+    com.neogulss.feign: DEBUG
+
+feign:
+  client:
+    config:
+      seoulApi:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: BASIC
+
