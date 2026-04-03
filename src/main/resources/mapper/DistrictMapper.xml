@@ -4,16 +4,24 @@
 <mapper namespace="com.neogulss.neogulmap.district.mapper.DistrictMapper">
   <select id="getDistrictRecommendList" parameterType="com.neogulss.neogulmap.district.dto.DistrictDTO$Request"
     resultType="com.neogulss.neogulmap.district.dto.DistrictDTO$DistrictRecommendList">
-    SELECT CD.district_code,
-           CD.district_name,
-           CD.initial_capital,
-           CD.x_coordinate,
-           CD.y_coordinate,
-           CD.AREA,
-           DB.store_count
-    FROM COMMERCIAL_DISTRICT CD
-           LEFT OUTER JOIN DISTRICT_BUSINESS DB ON CD.district_code = DB.district_code
-    WHERE CD.initial_capital = #{initial_capital}
-      AND DB.detail_category_name = #{detail_category_name}
+    /*상권 추천 리스트 API (초기투자금 필터 필요*/
+    SELECT
+      AD.DISTRICT_CODE,
+      AD.DISTRICT_NAME,
+      AAD.ADMIN_DONG_CODE,
+      AAD.ADMIN_DONG_NAME,
+      AD.LONGITUDE,
+      AD.LATITUDE,
+      S.SERVICE_INDUSTRY_CODE,
+      S.SERVICE_INDUSTRY_CODE_NAME
+    FROM AREA_ADMIN_DONG AAD
+           LEFT OUTER JOIN AREA_DISTRICT AD
+                           ON LEFT(CAST(AAD.ADMIN_DONG_CODE AS CHAR), 5) = CAST(AD.DISTRICT_CODE AS CHAR)
+           LEFT OUTER JOIN STORE S
+                           ON S.ADMIN_DONG_CODE = AAD.ADMIN_DONG_CODE
+           LEFT OUTER JOIN SERVICE_CATEGORY SC
+                           ON SC.SERVICE_CATEGORY_NAME = S.SERVICE_INDUSTRY_CODE_NAME
+    WHERE SC.MAIN_CATEGORY_CODE = #{mainCategoryCode}
+      AND S.SERVICE_INDUSTRY_CODE_NAME = #{serviceIndustryCodeName};
   </select>
 </mapper>
