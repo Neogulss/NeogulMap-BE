@@ -31,8 +31,8 @@ public class DistrictDTO {
   @NoArgsConstructor
   @ToString
   public static class Request {
-    private String initial_capital;
-    private String detail_category_name;
+    private String mainCategoryCode;
+    private String serviceIndustryCodeName;
   }
 
   @Alias("DistrictRecommendList")
@@ -43,12 +43,13 @@ public class DistrictDTO {
   @NoArgsConstructor
   @ToString
   public static class DistrictRecommendList{
+    private int adminDongCode;
+    private String adminDongName;
     private int districtCode;
     private String districtName;
-    private int initialCapital;
-    private double xCoordinate;
-    private double yCcoordinate;
-    private int area;
-    private int storeCount;
+    private double longitude;
+    private double latitude;
+    private String serviceIndustryCode;
+    private String serviceIndustryCodeName;
   }
 }
