@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.neogulss.neogulmap.auth.mapper.UserMapper">
+
+  <!-- 아이디 중복 확인 -->
+  <select id="selectUserIdCount"
+    parameterType="String"
+    resultType="int">
+    SELECT COUNT(*)
+    FROM USERS
+    WHERE USER_ID = #{userId}
+  </select>
+
+  <!-- 닉네임 중복 확인 -->
+  <select id="selectUserNicknameCount"
+    parameterType="String"
+    resultType="int">
+    SELECT COUNT(*)
+    FROM USERS
+    WHERE USER_NICKNAME = #{userNickname}
+  </select>
+
+  <!-- 회원가입 -->
+  <insert id="insertUser"
+    parameterType="com.neogulss.neogulmap.auth.dto.UserDTO$SignUpRequest"
+    useGeneratedKeys="true"
+    keyProperty="userIdx">
+    INSERT INTO USERS (USER_ID, USER_PWD, USER_NICKNAME, USER_AGE, IS_REGISTERED_BUSINESS)
+    VALUES (#{userId}, #{userPwd}, #{userNickname}, #{userAge}, #{isRegisteredBusiness})
+  </insert>
+
+  <!-- 아이디로 유저 조회 (로그인용) -->
+  <select id="selectUserByUserId"
+    parameterType="String"
+    resultType="com.neogulss.neogulmap.auth.dto.UserDTO$UserEntity">
+    SELECT
+      USER_IDX                AS userIdx,
+      USER_ID                 AS userId,
+      USER_PWD                AS userPwd,
+      USER_NICKNAME           AS userNickname,
+      USER_AGE                AS userAge,
+      IS_REGISTERED_BUSINESS  AS isRegisteredBusiness
+    FROM USERS
+    WHERE USER_ID = #{userId}
+  </select>
+
+</mapper>

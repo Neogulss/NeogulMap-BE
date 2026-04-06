@@ -13,9 +13,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 public class CommunityDTO {
-
 
   /**
    * 게시글 목록 조회 Request
@@ -142,6 +140,8 @@ public class CommunityDTO {
   @NoArgsConstructor
   @ToString
   public static class CommentWriteRequest {
+    /** 댓글 IDX (INSERT 후 자동 생성된 키 반환용) */
+    private Integer commentIdx;
     /** 게시글 IDX */
     @NotNull(message = "게시글 IDX는 필수입니다.")
     private Integer postIdx;
