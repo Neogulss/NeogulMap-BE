@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.neogulss.neogulmap.report.mapper.ReportMapper">
+
+    <!-- =====================================================
+         점포 관련
+    ===================================================== -->
+
+    <!-- 현재 분기 점포수 조회 -->
+    <select id="selectStoreCount"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$StoreCountResult">
+        SELECT
+            SUM(STORE_COUNT)           AS storeCount,
+            SUM(OPENING_STORE_COUNT)   AS openingStoreCount,
+            SUM(CLOSURE_STORE_COUNT)   AS closureStoreCount,
+            SUM(FRANCHISE_STORE_COUNT) AS franchiseStoreCount
+        FROM STORE
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND SERVICE_INDUSTRY_CODE  = #{serviceIndustryCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- 전분기 점포수 조회 -->
+    <select id="selectPrevQuarterStoreCount"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$StoreCountResult">
+        SELECT
+            SUM(STORE_COUNT)           AS storeCount,
+            SUM(OPENING_STORE_COUNT)   AS openingStoreCount,
+            SUM(CLOSURE_STORE_COUNT)   AS closureStoreCount,
+            SUM(FRANCHISE_STORE_COUNT) AS franchiseStoreCount
+        FROM STORE
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND SERVICE_INDUSTRY_CODE  = #{serviceIndustryCode}
+          AND BASE_YEAR_QUARTER_CODE = (
+            SELECT MAX(BASE_YEAR_QUARTER_CODE)
+            FROM STORE
+            WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+              AND SERVICE_INDUSTRY_CODE  = #{serviceIndustryCode}
+              AND BASE_YEAR_QUARTER_CODE &lt; #{yearQuarter}
+        )
+    </select>
+
+    <!-- 전년 동분기 점포수 조회 -->
+    <select id="selectPrevYearStoreCount"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$StoreCountResult">
+        SELECT
+            SUM(STORE_COUNT)           AS storeCount,
+            SUM(OPENING_STORE_COUNT)   AS openingStoreCount,
+            SUM(CLOSURE_STORE_COUNT)   AS closureStoreCount,
+            SUM(FRANCHISE_STORE_COUNT) AS franchiseStoreCount
+        FROM STORE
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND SERVICE_INDUSTRY_CODE  = #{serviceIndustryCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter} - 10
+    </select>
+
+    <!-- 자치구 내 행정동 점포수 목록 조회 (등수 계산용) -->
+    <select id="selectDistrictStoreRank"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$StoreRankResult">
+        SELECT
+            S.ADMIN_DONG_CODE  AS adminDongCode,
+            SUM(S.STORE_COUNT) AS storeCount
+        FROM STORE S
+        WHERE LEFT(CAST(S.ADMIN_DONG_CODE AS CHAR), 5) = LEFT(CAST(#{adminDongCode} AS CHAR), 5)
+          AND S.SERVICE_INDUSTRY_CODE  = #{serviceIndustryCode}
+          AND S.BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+        GROUP BY S.ADMIN_DONG_CODE
+    </select>
+
+    <!-- 평균 영업기간 조회 -->
+    <select id="selectAvgOperatingMonths"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$AvgOperatingResult">
+        SELECT
+            AVG(OPERATING_BUSINESS_MONTH_AVG) AS avgOperatingMonths
+        FROM COMMERCIAL_CHANGE_INDICATOR
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- 업종분포 조회 (외식업 / 서비스업 / 소매업) -->
+    <select id="selectIndustryDistribution"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$IndustryDistributionResult">
+        SELECT
+            SUM(CASE WHEN MC.MAIN_CATEGORY_NAME = '외식업'  THEN S.STORE_COUNT ELSE 0 END) AS foodCount,
+            SUM(CASE WHEN MC.MAIN_CATEGORY_NAME = '서비스업' THEN S.STORE_COUNT ELSE 0 END) AS serviceCount,
+            SUM(CASE WHEN MC.MAIN_CATEGORY_NAME = '소매업'  THEN S.STORE_COUNT ELSE 0 END) AS retailCount
+        FROM STORE S
+                 JOIN SERVICE_CATEGORY SC ON S.SERVICE_INDUSTRY_CODE = SC.SERVICE_CATEGORY_CODE
+                 JOIN MAIN_CATEGORY MC    ON SC.MAIN_CATEGORY_CODE   = MC.MAIN_CATEGORY_CODE
+        WHERE S.ADMIN_DONG_CODE        = #{adminDongCode}
+          AND S.BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- =====================================================
+         유동인구 관련
+    ===================================================== -->
+
+    <!-- 현재 분기 유동인구 조회 -->
+    <select id="selectFloatingPopulation"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$FloatingPopulationResult">
+        SELECT
+            TOTAL_FLOATING_POPULATION        AS totalFloatingPopulation,
+            MALE_FLOATING_POPULATION         AS maleFloatingPopulation,
+            FEMALE_FLOATING_POPULATION       AS femaleFloatingPopulation,
+            AGE_10_FLOATING_POPULATION       AS age10FloatingPopulation,
+            AGE_20_FLOATING_POPULATION       AS age20FloatingPopulation,
+            AGE_30_FLOATING_POPULATION       AS age30FloatingPopulation,
+            AGE_40_FLOATING_POPULATION       AS age40FloatingPopulation,
+            AGE_50_FLOATING_POPULATION       AS age50FloatingPopulation,
+            AGE_60_ABOVE_FLOATING_POPULATION AS age60AboveFloatingPopulation,
+            TIME_00_06_FLOATING_POPULATION   AS time0006FloatingPopulation,
+            TIME_06_11_FLOATING_POPULATION   AS time0611FloatingPopulation,
+            TIME_11_14_FLOATING_POPULATION   AS time1114FloatingPopulation,
+            TIME_14_17_FLOATING_POPULATION   AS time1417FloatingPopulation,
+            TIME_17_21_FLOATING_POPULATION   AS time1721FloatingPopulation,
+            TIME_21_24_FLOATING_POPULATION   AS time2124FloatingPopulation,
+            MONDAY_FLOATING_POPULATION       AS mondayFloatingPopulation,
+            TUESDAY_FLOATING_POPULATION      AS tuesdayFloatingPopulation,
+            WEDNESDAY_FLOATING_POPULATION    AS wednesdayFloatingPopulation,
+            THURSDAY_FLOATING_POPULATION     AS thursdayFloatingPopulation,
+            FRIDAY_FLOATING_POPULATION       AS fridayFloatingPopulation,
+            SATURDAY_FLOATING_POPULATION     AS saturdayFloatingPopulation,
+            SUNDAY_FLOATING_POPULATION       AS sundayFloatingPopulation
+        FROM STREET_POPULATION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- 전분기 유동인구 합계 조회 -->
+    <select id="selectPrevQuarterFloating"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$FloatingTotalResult">
+        SELECT TOTAL_FLOATING_POPULATION AS totalFloatingPopulation
+        FROM STREET_POPULATION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = (
+            SELECT MAX(BASE_YEAR_QUARTER_CODE)
+            FROM STREET_POPULATION
+            WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+              AND BASE_YEAR_QUARTER_CODE &lt; #{yearQuarter}
+        )
+    </select>
+
+    <!-- 전년 동분기 유동인구 합계 조회 -->
+    <select id="selectPrevYearFloating"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$FloatingTotalResult">
+        SELECT TOTAL_FLOATING_POPULATION AS totalFloatingPopulation
+        FROM STREET_POPULATION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter} - 10
+    </select>
+
+    <!-- 자치구 내 행정동 유동인구 목록 조회 (등수 계산용) -->
+    <select id="selectDistrictFloatingRank"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$FloatingRankResult">
+        SELECT
+            SP.ADMIN_DONG_CODE           AS adminDongCode,
+            SP.TOTAL_FLOATING_POPULATION AS totalFloatingPopulation
+        FROM STREET_POPULATION SP
+        WHERE LEFT(CAST(SP.ADMIN_DONG_CODE AS CHAR), 5) = LEFT(CAST(#{adminDongCode} AS CHAR), 5)
+          AND SP.BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- =====================================================
+         주거인구 관련
+    ===================================================== -->
+
+    <!-- 현재 분기 주거인구 조회 -->
+    <select id="selectResidentPopulation"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$ResidentPopulationResult">
+        SELECT
+            TOTAL_RESIDENT_POPULATION               AS totalResidentPopulation,
+            MALE_RESIDENT_POPULATION                AS maleResidentPopulation,
+            FEMALE_RESIDENT_POPULATION              AS femaleResidentPopulation,
+            MALE_AGE_10_RESIDENT_POPULATION         AS maleAge10ResidentPopulation,
+            MALE_AGE_20_RESIDENT_POPULATION         AS maleAge20ResidentPopulation,
+            MALE_AGE_30_RESIDENT_POPULATION         AS maleAge30ResidentPopulation,
+            MALE_AGE_40_RESIDENT_POPULATION         AS maleAge40ResidentPopulation,
+            MALE_AGE_50_RESIDENT_POPULATION         AS maleAge50ResidentPopulation,
+            MALE_AGE_60_ABOVE_RESIDENT_POPULATION   AS maleAge60AboveResidentPopulation,
+            FEMALE_AGE_10_RESIDENT_POPULATION       AS femaleAge10ResidentPopulation,
+            FEMALE_AGE_20_RESIDENT_POPULATION       AS femaleAge20ResidentPopulation,
+            FEMALE_AGE_30_RESIDENT_POPULATION       AS femaleAge30ResidentPopulation,
+            FEMALE_AGE_40_RESIDENT_POPULATION       AS femaleAge40ResidentPopulation,
+            FEMALE_AGE_50_RESIDENT_POPULATION       AS femaleAge50ResidentPopulation,
+            FEMALE_AGE_60_ABOVE_RESIDENT_POPULATION AS femaleAge60AboveResidentPopulation,
+            TOTAL_HOUSEHOLD_COUNT                   AS totalHouseholdCount,
+            APARTMENT_HOUSEHOLD_COUNT               AS apartmentHouseholdCount,
+            NON_APARTMENT_HOUSEHOLD_COUNT           AS nonApartmentHouseholdCount
+        FROM RESIDENT_POPULATION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- 전분기 주거인구 합계 조회 -->
+    <select id="selectPrevQuarterResident"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$ResidentTotalResult">
+        SELECT
+            TOTAL_RESIDENT_POPULATION AS totalResidentPopulation,
+            TOTAL_HOUSEHOLD_COUNT     AS totalHouseholdCount
+        FROM RESIDENT_POPULATION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = (
+            SELECT MAX(BASE_YEAR_QUARTER_CODE)
+            FROM RESIDENT_POPULATION
+            WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+              AND BASE_YEAR_QUARTER_CODE &lt; #{yearQuarter}
+        )
+    </select>
+
+    <!-- 전년 동분기 주거인구 합계 조회 -->
+    <select id="selectPrevYearResident"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$ResidentTotalResult">
+        SELECT
+            TOTAL_RESIDENT_POPULATION AS totalResidentPopulation,
+            TOTAL_HOUSEHOLD_COUNT     AS totalHouseholdCount
+        FROM RESIDENT_POPULATION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter} - 10
+    </select>
+
+    <!-- =====================================================
+         가구세대 / 아파트 관련
+    ===================================================== -->
+
+    <!-- 현재 분기 가구세대 조회 -->
+    <select id="selectHousehold"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$ResidentTotalResult">
+        SELECT
+            TOTAL_RESIDENT_POPULATION AS totalResidentPopulation,
+            TOTAL_HOUSEHOLD_COUNT     AS totalHouseholdCount
+        FROM RESIDENT_POPULATION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- 전분기 가구세대 조회 -->
+    <select id="selectPrevQuarterHousehold"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$ResidentTotalResult">
+        SELECT
+            TOTAL_RESIDENT_POPULATION AS totalResidentPopulation,
+            TOTAL_HOUSEHOLD_COUNT     AS totalHouseholdCount
+        FROM RESIDENT_POPULATION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = (
+            SELECT MAX(BASE_YEAR_QUARTER_CODE)
+            FROM RESIDENT_POPULATION
+            WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+              AND BASE_YEAR_QUARTER_CODE &lt; #{yearQuarter}
+        )
+    </select>
+
+    <!-- 전년 동분기 가구세대 조회 -->
+    <select id="selectPrevYearHousehold"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$ResidentTotalResult">
+        SELECT
+            TOTAL_RESIDENT_POPULATION AS totalResidentPopulation,
+            TOTAL_HOUSEHOLD_COUNT     AS totalHouseholdCount
+        FROM RESIDENT_POPULATION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter} - 10
+    </select>
+
+    <!-- 아파트 현황 조회 -->
+    <select id="selectApartment"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$ApartmentResult">
+        SELECT
+            APARTMENT_COMPLEX_COUNT         AS apartmentComplexCount,
+            APT_AREA_UNDER_66SQM_UNIT_COUNT AS aptAreaUnder66SqmUnitCount,
+            APT_AREA_66SQM_UNIT_COUNT       AS aptArea66SqmUnitCount,
+            APT_AREA_99SQM_UNIT_COUNT       AS aptArea99SqmUnitCount,
+            APT_AREA_132SQM_UNIT_COUNT      AS aptArea132SqmUnitCount,
+            APT_AREA_165SQM_UNIT_COUNT      AS aptArea165SqmUnitCount,
+            APT_PRICE_UNDER_100M_UNIT_COUNT AS aptPriceUnder100mUnitCount,
+            APT_PRICE_100M_UNIT_COUNT       AS aptPrice100mUnitCount,
+            APT_PRICE_200M_UNIT_COUNT       AS aptPrice200mUnitCount,
+            APT_PRICE_300M_UNIT_COUNT       AS aptPrice300mUnitCount,
+            APT_PRICE_400M_UNIT_COUNT       AS aptPrice400mUnitCount,
+            APT_PRICE_500M_UNIT_COUNT       AS aptPrice500mUnitCount,
+            APT_PRICE_600M_ABOVE_UNIT_COUNT AS aptPrice600mAboveUnitCount,
+            APARTMENT_AVG_AREA              AS apartmentAvgArea,
+            APARTMENT_AVG_PRICE             AS apartmentAvgPrice
+        FROM APARTMENT
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- =====================================================
+         집객시설 관련
+    ===================================================== -->
+
+    <!-- 집객시설 현황 조회 -->
+    <select id="selectFacility"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$FacilityResult">
+        SELECT
+            TOTAL_VISITOR_FACILITY_COUNT AS totalVisitorFacilityCount,
+            GOVERNMENT_OFFICE_COUNT      AS governmentOfficeCount,
+            BANK_COUNT                   AS bankCount,
+            GENERAL_HOSPITAL_COUNT       AS generalHospitalCount,
+            HOSPITAL_COUNT               AS hospitalCount,
+            PHARMACY_COUNT               AS pharmacyCount,
+            KINDERGARTEN_COUNT           AS kindergartenCount,
+            ELEMENTARY_SCHOOL_COUNT      AS elementarySchoolCount,
+            MIDDLE_SCHOOL_COUNT          AS middleSchoolCount,
+            HIGH_SCHOOL_COUNT            AS highSchoolCount,
+            UNIVERSITY_COUNT             AS universityCount,
+            DEPARTMENT_STORE_COUNT       AS departmentStoreCount,
+            SUPERMARKET_COUNT            AS supermarketCount,
+            THEATER_COUNT                AS theaterCount,
+            ACCOMMODATION_COUNT          AS accommodationCount,
+            AIRPORT_COUNT                AS airportCount,
+            RAILWAY_STATION_COUNT        AS railwayStationCount,
+            BUS_TERMINAL_COUNT           AS busTerminalCount,
+            SUBWAY_STATION_COUNT         AS subwayStationCount,
+            BUS_STOP_COUNT               AS busStopCount
+        FROM VISITOR_FACILITY_ADMIN_DONG
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- =====================================================
+         소득 / 소비트렌드 관련
+    ===================================================== -->
+
+    <!-- 소득 및 소비트렌드 조회 -->
+    <select id="selectIncome"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$IncomeResult">
+        SELECT
+            MONTHLY_AVG_INCOME_AMOUNT          AS monthlyAvgIncomeAmount,
+            INCOME_RANGE_CODE                  AS incomeRangeCode,
+            TOTAL_EXPENDITURE_AMOUNT           AS totalExpenditureAmount,
+            FOOD_EXPENDITURE_AMOUNT            AS foodExpenditureAmount,
+            CLOTHING_SHOES_EXPENDITURE_AMOUNT  AS clothingShoesExpenditureAmount,
+            HOUSEHOLD_GOODS_EXPENDITURE_AMOUNT AS householdGoodsExpenditureAmount,
+            MEDICAL_EXPENDITURE_AMOUNT         AS medicalExpenditureAmount,
+            TRANSPORT_EXPENDITURE_AMOUNT       AS transportExpenditureAmount,
+            EDUCATION_EXPENDITURE_AMOUNT       AS educationExpenditureAmount,
+            ENTERTAINMENT_EXPENDITURE_AMOUNT   AS entertainmentExpenditureAmount,
+            LEISURE_CULTURE_EXPENDITURE_AMOUNT AS leisureCultureExpenditureAmount,
+            ETC_EXPENDITURE_AMOUNT             AS etcExpenditureAmount,
+            FOOD_SERVICE_EXPENDITURE_AMOUNT    AS foodServiceExpenditureAmount
+        FROM INCOME_CONSUMPTION
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+    <!-- =====================================================
+         상권변화지표 관련
+    ===================================================== -->
+
+    <!-- 상권변화지표 조회 -->
+    <select id="selectCommercialIndicator"
+      parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+      resultType="com.neogulss.neogulmap.report.dto.ReportDTO$CommercialIndicatorResult">
+        SELECT
+            COMMERCIAL_CHANGE_INDICATOR_CODE   AS commercialChangeIndicatorCode,
+            COMMERCIAL_CHANGE_INDICATOR_NAME   AS commercialChangeIndicatorName,
+            OPERATING_BUSINESS_MONTH_AVG       AS operatingBusinessMonthAvg,
+            CLOSED_BUSINESS_MONTH_AVG          AS closedBusinessMonthAvg,
+            SEOUL_OPERATING_BUSINESS_MONTH_AVG AS seoulOperatingBusinessMonthAvg,
+            SEOUL_CLOSED_BUSINESS_MONTH_AVG    AS seoulClosedBusinessMonthAvg
+        FROM COMMERCIAL_CHANGE_INDICATOR
+        WHERE ADMIN_DONG_CODE        = #{adminDongCode}
+          AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    </select>
+
+</mapper>
