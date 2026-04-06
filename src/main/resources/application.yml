@@ -60,4 +60,7 @@ feign:
         connectTimeout: 5000
         readTimeout: 10000
         loggerLevel: BASIC
+---
+admin:
+  user-id: admin
 
