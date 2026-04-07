@@ -107,5 +107,6 @@ dependency-reduced-pom.xml
 # Others
 *.class
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
