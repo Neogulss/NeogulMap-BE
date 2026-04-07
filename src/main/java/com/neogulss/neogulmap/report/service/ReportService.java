@@ -32,12 +32,13 @@ public class ReportService {
         log.info("[{}] 점포 리포트 조회 시작 - yearQuarter: [{}]",
             request.getAdminDongCode(), request.getYearQuarter());
 
-        ReportDTO.StoreCountResult current       = reportMapper.selectStoreCount(request);
+        ReportDTO.StoreCountResult current       = nullSafeStore(reportMapper.selectStoreCount(request));
         ReportDTO.StoreCountResult prevQuarter   = nullSafeStore(reportMapper.selectPrevQuarterStoreCount(request));
         ReportDTO.StoreCountResult prevYear      = nullSafeStore(reportMapper.selectPrevYearStoreCount(request));
         List<ReportDTO.StoreRankResult> rankList  = reportMapper.selectDistrictStoreRank(request);
         ReportDTO.AvgOperatingResult avgMonths    = reportMapper.selectAvgOperatingMonths(request);
         ReportDTO.IndustryDistributionResult dist = reportMapper.selectIndustryDistribution(request);
+        if (dist == null) dist = ReportDTO.IndustryDistributionResult.builder().build();
 
         // 자치구 내 등수 계산
         int rank = 1;
@@ -104,6 +105,7 @@ public class ReportService {
             request.getAdminDongCode(), request.getYearQuarter());
 
         ReportDTO.FloatingPopulationResult current  = reportMapper.selectFloatingPopulation(request);
+        if (current == null) current = ReportDTO.FloatingPopulationResult.builder().build();
         ReportDTO.FloatingTotalResult prevQuarter   = nullSafeFloating(reportMapper.selectPrevQuarterFloating(request));
         ReportDTO.FloatingTotalResult prevYear      = nullSafeFloating(reportMapper.selectPrevYearFloating(request));
         List<ReportDTO.FloatingRankResult> rankList = reportMapper.selectDistrictFloatingRank(request);
@@ -160,6 +162,7 @@ public class ReportService {
             request.getAdminDongCode(), request.getYearQuarter());
 
         ReportDTO.ResidentPopulationResult current = reportMapper.selectResidentPopulation(request);
+        if (current == null) current = ReportDTO.ResidentPopulationResult.builder().build();
         ReportDTO.ResidentTotalResult prevQuarter  = nullSafeResident(reportMapper.selectPrevQuarterResident(request));
         ReportDTO.ResidentTotalResult prevYear     = nullSafeResident(reportMapper.selectPrevYearResident(request));
 
@@ -199,10 +202,11 @@ public class ReportService {
         log.info("[{}] 가구세대/아파트 리포트 조회 시작 - yearQuarter: [{}]",
             request.getAdminDongCode(), request.getYearQuarter());
 
-        ReportDTO.ResidentTotalResult current     = reportMapper.selectHousehold(request);
+        ReportDTO.ResidentTotalResult current     = nullSafeResident(reportMapper.selectHousehold(request));
         ReportDTO.ResidentTotalResult prevQuarter = nullSafeResident(reportMapper.selectPrevQuarterHousehold(request));
         ReportDTO.ResidentTotalResult prevYear    = nullSafeResident(reportMapper.selectPrevYearHousehold(request));
         ReportDTO.ApartmentResult apt             = reportMapper.selectApartment(request);
+        if (apt == null) apt = ReportDTO.ApartmentResult.builder().build();
 
         log.info("[{}] 가구세대/아파트 리포트 조회 완료 - totalHouseholdCount: [{}]",
             request.getAdminDongCode(), current.getTotalHouseholdCount());

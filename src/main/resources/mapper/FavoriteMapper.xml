@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.neogulss.neogulmap.favorite.mapper.FavoriteMapper">
+
+  <!-- 즐겨찾기 목록 조회 -->
+  <select id="selectFavoriteList"
+    parameterType="int"
+    resultType="com.neogulss.neogulmap.favorite.dto.FavoriteDTO$FavoriteItem">
+    SELECT
+      F.FAVORITE_IDX          AS favoriteIdx,
+      F.ADMIN_DONG_CODE       AS adminDongCode,
+      A.ADMIN_DONG_NAME       AS adminDongName,
+      D.DISTRICT_NAME         AS districtName,
+      F.INITIAL_CAPITAL       AS initialCapital,
+      F.SERVICE_CATEGORY_NAME AS serviceCategoryName,
+      F.REG_DATE              AS regDate
+    FROM FAVORITE_LIST F
+           JOIN AREA_ADMIN_DONG A ON F.ADMIN_DONG_CODE = A.ADMIN_DONG_CODE
+           JOIN AREA_DISTRICT D
+                ON LEFT(CAST(F.ADMIN_DONG_CODE AS CHAR), 5) = CAST(D.DISTRICT_CODE AS CHAR)
+    WHERE F.USER_IDX = #{userIdx}
+    ORDER BY F.REG_DATE DESC
+  </select>
+
+  <!-- 즐겨찾기 전체 수 조회 -->
+  <select id="selectFavoriteTotalCount"
+    parameterType="int"
+    resultType="int">
+    SELECT COUNT(*)
+    FROM FAVORITE_LIST
+    WHERE USER_IDX = #{userIdx}
+  </select>
+
+  <!-- 즐겨찾기 중복 확인 -->
+  <select id="selectFavoriteDuplicateCount"
+    parameterType="com.neogulss.neogulmap.favorite.dto.FavoriteDTO$FavoriteAddRequest"
+    resultType="int">
+    SELECT COUNT(*)
+    FROM FAVORITE_LIST
+    WHERE USER_IDX            = #{userIdx}
+      AND ADMIN_DONG_CODE     = #{adminDongCode}
+      AND SERVICE_CATEGORY_NAME = #{serviceCategoryName}
+  </select>
+
+  <!-- 즐겨찾기 추가 -->
+  <insert id="insertFavorite"
+    parameterType="com.neogulss.neogulmap.favorite.dto.FavoriteDTO$FavoriteAddRequest"
+    useGeneratedKeys="true"
+    keyProperty="favoriteIdx">
+    INSERT INTO FAVORITE_LIST (ADMIN_DONG_CODE, USER_IDX, INITIAL_CAPITAL, SERVICE_CATEGORY_NAME)
+    VALUES (#{adminDongCode}, #{userIdx}, #{initialCapital}, #{serviceCategoryName})
+  </insert>
+
+  <!-- 즐겨찾기 삭제 -->
+  <delete id="deleteFavorite"
+    parameterType="com.neogulss.neogulmap.favorite.dto.FavoriteDTO$FavoriteDeleteRequest">
+    DELETE FROM FAVORITE_LIST
+    WHERE FAVORITE_IDX = #{favoriteIdx}
+      AND USER_IDX     = #{userIdx}
+  </delete>
+
+  <!-- 즐겨찾기 본인 확인 -->
+  <select id="selectFavoriteOwner"
+    parameterType="com.neogulss.neogulmap.favorite.dto.FavoriteDTO$FavoriteDeleteRequest"
+    resultType="int">
+    SELECT COUNT(*)
+    FROM FAVORITE_LIST
+    WHERE FAVORITE_IDX = #{favoriteIdx}
+      AND USER_IDX     = #{userIdx}
+  </select>
+
+</mapper>
