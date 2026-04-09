@@ -13,12 +13,12 @@ public class RagLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "RAG_LOG_IDX")
+    @Column(name = "RAG_LOG_IDX", columnDefinition = "INT UNSIGNED")
     private Long ragLogIdx;
 
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CHAT_LOG_IDX", nullable = false)
+    @JoinColumn(name = "CHAT_LOG_IDX", nullable = false, columnDefinition = "INT UNSIGNED")
     private ChatLog chatLog;
 
     @Setter
