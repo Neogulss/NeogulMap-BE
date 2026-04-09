@@ -16,12 +16,12 @@ public class ChatLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CHAT_LOG_IDX")
+    @Column(name = "CHAT_LOG_IDX", columnDefinition = "INT UNSIGNED")
     private Long chatLogIdx;
 
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SESSION_IDX", nullable = false)
+    @JoinColumn(name = "SESSION_IDX", nullable = false, columnDefinition = "INT UNSIGNED")
     private ChatSession session;
 
     @Column(name = "CREATED_AT", insertable = false, updatable = false)

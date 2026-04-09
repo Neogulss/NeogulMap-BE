@@ -15,11 +15,11 @@ public class ChatSession {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "SESSION_IDX")
+    @Column(name = "SESSION_IDX", columnDefinition = "INT UNSIGNED")
     private Long sessionIdx;
 
     @Setter
-    @Column(name = "USER_IDX", nullable = false)
+    @Column(name = "USER_IDX", nullable = false, columnDefinition = "INT UNSIGNED")
     private Long userIdx;
 
     @Column(name = "CREATED_AT", insertable = false, updatable = false)

@@ -15,7 +15,8 @@ public class CorsConfig {
         registry.addMapping("/**")
             .allowedOrigins(
                 "http://13.209.5.156",
-                "https://neogulmap.shinhanacademy.co.kr"
+                "https://neogulmap.shinhanacademy.co.kr",
+                "http://localhost:5173"
             )
             .allowedMethods("*")
             .allowCredentials(true);
