@@ -63,4 +63,16 @@ feign:
 ---
 admin:
   user-id: admin
+---
+python:
+  ai:
+    base-url: http://localhost:8000
+
+---
+spring:
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
 
