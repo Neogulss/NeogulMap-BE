@@ -16,7 +16,8 @@ public class CorsConfig {
             .allowedOrigins(
                 "http://13.209.5.156",
                 "https://neogulmap.shinhanacademy.co.kr",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "http://localhost:8000"
             )
             .allowedMethods("*")
             .allowCredentials(true);
