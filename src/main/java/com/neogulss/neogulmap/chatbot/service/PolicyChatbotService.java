@@ -8,9 +8,11 @@ import com.neogulss.neogulmap.chatbot.dto.*;
 import com.neogulss.neogulmap.chatbot.entity.ChatLog;
 import com.neogulss.neogulmap.chatbot.entity.ChatSession;
 import com.neogulss.neogulmap.chatbot.entity.RagLog;
+import com.neogulss.neogulmap.chatbot.entity.RecommendedQuestion;
 import com.neogulss.neogulmap.chatbot.repository.ChatLogRepository;
 import com.neogulss.neogulmap.chatbot.repository.ChatSessionRepository;
 import com.neogulss.neogulmap.chatbot.repository.RagLogRepository;
+import com.neogulss.neogulmap.chatbot.repository.RecommendedQuestionRepository;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
@@ -20,15 +22,29 @@ import com.neogulss.neogulmap.chatbot.dto.ChatSessionTitleResponse;
 import com.neogulss.neogulmap.chatbot.dto.DeleteChatSessionResponse;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class PolicyChatbotService {
+    private static final int RECOMMENDED_LIMIT = 3;
+    private static final Pattern TOKEN_PATTERN = Pattern.compile("[가-힣A-Za-z0-9]{2,}");
+    private static final List<String> INITIAL_KEYWORDS = List.of(
+            "서비스", "입지", "창업", "정책", "대출", "지원", "신청", "혜택"
+    );
 
     private final PolicyChatbotAiClient policyChatbotAiClient;
     private final ChatSessionRepository chatSessionRepository;
     private final ChatLogRepository chatLogRepository;
     private final RagLogRepository ragLogRepository;
+    private final RecommendedQuestionRepository recommendedQuestionRepository;
     private final ObjectMapper objectMapper;
 
     public PolicyChatbotService(
@@ -36,12 +52,14 @@ public class PolicyChatbotService {
             ChatSessionRepository chatSessionRepository,
             ChatLogRepository chatLogRepository,
             RagLogRepository ragLogRepository,
+            RecommendedQuestionRepository recommendedQuestionRepository,
             ObjectMapper objectMapper
     ){
         this.policyChatbotAiClient = policyChatbotAiClient;
         this.chatSessionRepository = chatSessionRepository;
         this.chatLogRepository = chatLogRepository;
         this.ragLogRepository = ragLogRepository;
+        this.recommendedQuestionRepository = recommendedQuestionRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -122,6 +140,38 @@ public class PolicyChatbotService {
         return responses;
     }
 
+    @Transactional(readOnly = true)
+    public List<RecommendedQuestionResponse> getRecommendedQuestions(Long userIdx, Long sessionIdx) {
+        List<RecommendedQuestion> allQuestions = recommendedQuestionRepository.findAll();
+        if (allQuestions.isEmpty()) {
+            return List.of();
+        }
+
+        List<RecommendedQuestion> selected;
+        if (sessionIdx == null) {
+            selected = pickInitialQuestions(allQuestions, RECOMMENDED_LIMIT);
+        } else {
+            ChatSession session = chatSessionRepository.findBySessionIdxAndUserIdx(sessionIdx, userIdx)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 접근할 수 없는 세션입니다."));
+            String latestBotResponse = extractLatestBotResponse(session);
+
+            if (latestBotResponse == null || latestBotResponse.isBlank()) {
+                selected = pickInitialQuestions(allQuestions, RECOMMENDED_LIMIT);
+            } else {
+                selected = pickContextualQuestions(allQuestions, latestBotResponse, RECOMMENDED_LIMIT);
+            }
+        }
+
+        List<RecommendedQuestionResponse> responses = new ArrayList<>();
+        for (RecommendedQuestion question : selected) {
+            RecommendedQuestionResponse item = new RecommendedQuestionResponse();
+            item.setQuestionIdx(question.getQuestionIdx());
+            item.setQuestionTitle(question.getQuestionTitle());
+            responses.add(item);
+        }
+        return responses;
+    }
+
     @Transactional
     public ChatSessionTitleResponse updateSessionTitle(Long userIdx, Long sessionIdx,String title){
         ChatSession session = chatSessionRepository.findBySessionIdxAndUserIdx(sessionIdx, userIdx)
@@ -158,6 +208,184 @@ public class PolicyChatbotService {
 
         return chatSessionRepository.findBySessionIdxAndUserIdx(sessionIdx, userIdx)
                 .orElseThrow(()->new IllegalArgumentException("존재하지 않거나 접근할 수 없는 세션입니다."));
+    }
+
+    private String extractLatestBotResponse(ChatSession session) {
+        List<ChatLog> chatLogs = chatLogRepository.findBySessionOrderByCreatedAtAsc(session);
+        for (int i = chatLogs.size() - 1; i >= 0; i--) {
+            ChatLogContents contents = parseChatLogContents(chatLogs.get(i).getContents());
+            if (contents != null && contents.getBotResponse() != null && !contents.getBotResponse().isBlank()) {
+                return contents.getBotResponse();
+            }
+        }
+        return null;
+    }
+
+    private List<RecommendedQuestion> pickInitialQuestions(List<RecommendedQuestion> questions, int limit) {
+        if (questions == null || questions.isEmpty() || limit <= 0) {
+            return List.of();
+        }
+
+        List<RecommendedQuestion> selected = new ArrayList<>();
+
+        List<RecommendedQuestion> serviceCandidates = new ArrayList<>();
+        List<RecommendedQuestion> others = new ArrayList<>();
+
+        for (RecommendedQuestion question : questions) {
+            if (isServiceIntroQuestion(question.getQuestionTitle())) {
+                serviceCandidates.add(question);
+            } else {
+                others.add(question);
+            }
+        }
+
+        if (!serviceCandidates.isEmpty()) {
+            int pick = ThreadLocalRandom.current().nextInt(serviceCandidates.size());
+            selected.add(serviceCandidates.get(pick));
+        } else {
+            List<RecommendedQuestion> fallback = new ArrayList<>(questions);
+            Collections.shuffle(fallback);
+            selected.add(fallback.get(0));
+        }
+
+        List<RecommendedQuestion> remainingPool = new ArrayList<>();
+        for (RecommendedQuestion question : others) {
+            if (isKeywordRelatedQuestion(question.getQuestionTitle())) {
+                remainingPool.add(question);
+            }
+        }
+        remainingPool.removeIf(item -> item.getQuestionIdx().equals(selected.get(0).getQuestionIdx()));
+        Collections.shuffle(remainingPool);
+
+        for (RecommendedQuestion question : remainingPool) {
+            if (selected.size() >= limit) {
+                break;
+            }
+            selected.add(question);
+        }
+
+        if (selected.size() < limit) {
+            List<RecommendedQuestion> allShuffled = new ArrayList<>(questions);
+            Collections.shuffle(allShuffled);
+            for (RecommendedQuestion question : allShuffled) {
+                if (selected.size() >= limit) {
+                    break;
+                }
+                boolean exists = selected.stream()
+                        .anyMatch(item -> item.getQuestionIdx().equals(question.getQuestionIdx()));
+                if (!exists) {
+                    selected.add(question);
+                }
+            }
+        }
+
+        return selected;
+    }
+
+    private boolean isServiceIntroQuestion(String questionTitle) {
+        if (questionTitle == null || questionTitle.isBlank()) {
+            return false;
+        }
+
+        String normalized = questionTitle.toLowerCase(Locale.ROOT);
+        return normalized.contains("서비스")
+                || normalized.contains("소개")
+                || normalized.contains("입지너구리");
+    }
+
+    private boolean isKeywordRelatedQuestion(String questionTitle) {
+        return scoreInitial(questionTitle) > 0.0;
+    }
+
+    private List<RecommendedQuestion> pickContextualQuestions(
+            List<RecommendedQuestion> questions,
+            String referenceText,
+            int limit
+    ) {
+        Set<String> referenceTokens = tokenize(referenceText);
+        if (referenceTokens.isEmpty()) {
+            return pickInitialQuestions(questions, limit);
+        }
+
+        List<ScoredQuestion> scored = new ArrayList<>();
+        for (RecommendedQuestion question : questions) {
+            String title = question.getQuestionTitle();
+            Set<String> questionTokens = tokenize(title);
+
+            int overlapCount = 0;
+            for (String token : questionTokens) {
+                if (referenceTokens.contains(token)) {
+                    overlapCount++;
+                }
+            }
+
+            double score = overlapCount * 3.0 + scoreInitial(title);
+            scored.add(new ScoredQuestion(question, score));
+        }
+
+        scored.sort(
+                Comparator.comparingDouble(ScoredQuestion::score).reversed()
+                        .thenComparing(item -> item.question().getQuestionIdx())
+        );
+
+        if (!scored.isEmpty() && scored.get(0).score() <= 0.0) {
+            return pickInitialQuestions(questions, limit);
+        }
+
+        return pickTopUnique(scored, limit);
+    }
+
+    private double scoreInitial(String questionTitle) {
+        if (questionTitle == null || questionTitle.isBlank()) {
+            return 0.0;
+        }
+
+        String normalized = questionTitle.toLowerCase(Locale.ROOT);
+        double score = 0.0;
+
+        for (String keyword : INITIAL_KEYWORDS) {
+            if (normalized.contains(keyword.toLowerCase(Locale.ROOT))) {
+                score += 1.0;
+            }
+        }
+        return score;
+    }
+
+    private Set<String> tokenize(String text) {
+        Set<String> tokens = new HashSet<>();
+        if (text == null || text.isBlank()) {
+            return tokens;
+        }
+
+        Matcher matcher = TOKEN_PATTERN.matcher(text.toLowerCase(Locale.ROOT));
+        while (matcher.find()) {
+            tokens.add(matcher.group());
+        }
+        return tokens;
+    }
+
+    private List<RecommendedQuestion> pickTopUnique(List<ScoredQuestion> scoredQuestions, int limit) {
+        List<RecommendedQuestion> selected = new ArrayList<>();
+        Set<Long> usedIds = new HashSet<>();
+
+        for (ScoredQuestion scored : scoredQuestions) {
+            if (selected.size() >= limit) {
+                break;
+            }
+
+            RecommendedQuestion question = scored.question();
+            if (question == null || question.getQuestionIdx() == null) {
+                continue;
+            }
+            if (usedIds.contains(question.getQuestionIdx())) {
+                continue;
+            }
+
+            usedIds.add(question.getQuestionIdx());
+            selected.add(question);
+        }
+
+        return selected;
     }
 
     private PolicyChatbotSendResponse toFrontResponse(ChatSession session, PolicyChatbotAiResponse aiResponse){
@@ -221,4 +449,6 @@ public class PolicyChatbotService {
         private String model;
         private Integer turnLatencyMs;
     }
+
+    private record ScoredQuestion(RecommendedQuestion question, double score) {}
 }

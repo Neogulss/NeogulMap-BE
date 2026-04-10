@@ -47,6 +47,15 @@ public class PolicyChatbotController {
         return policyChatbotService.getSessionLogs(userIdx, sessionIdx);
     }
 
+    @GetMapping("/recommended-questions")
+    public List<RecommendedQuestionResponse> getRecommendedQuestions(
+            @RequestParam(required = false) Long sessionIdx,
+            HttpSession session
+    ) {
+        Long userIdx = getLoginUserIdx(session);
+        return policyChatbotService.getRecommendedQuestions(userIdx, sessionIdx);
+    }
+
     @PatchMapping("/sessions/{sessionIdx}/title")
     public ChatSessionTitleResponse updateSessionTitle(
             @PathVariable Long sessionIdx,
