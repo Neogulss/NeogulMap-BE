@@ -7,8 +7,8 @@
   <select id="getCategoryList" parameterType="com.neogulss.neogulmap.category.dto.CategoryDTO$Request"
     resultType="com.neogulss.neogulmap.category.dto.CategoryDTO$CategoryItem">
     SELECT
-      SERVICE_CATEGORY_CODE,
-      SERVICE_CATEGORY_NAME AS serviceIndustryCodeName
+      SERVICE_CATEGORY_CODE  AS serviceIndustryCode,
+      SERVICE_CATEGORY_NAME  AS serviceIndustryCodeName
     FROM SERVICE_CATEGORY
     WHERE MAIN_CATEGORY_CODE = #{mainCategoryCode}
     ORDER BY SERVICE_CATEGORY_CODE
