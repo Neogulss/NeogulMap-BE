@@ -1,17 +1,16 @@
 package com.neogulss.neogulmap.report.service;
 
+
 import com.neogulss.neogulmap.report.dto.ReportDTO;
+import com.neogulss.neogulmap.report.dto.ReportDTO.StoreRankResult;
 import com.neogulss.neogulmap.report.mapper.ReportMapper;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
-/**
- * 분석 리포트 Service
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,7 +34,7 @@ public class ReportService {
         ReportDTO.StoreCountResult current       = nullSafeStore(reportMapper.selectStoreCount(request));
         ReportDTO.StoreCountResult prevQuarter   = nullSafeStore(reportMapper.selectPrevQuarterStoreCount(request));
         ReportDTO.StoreCountResult prevYear      = nullSafeStore(reportMapper.selectPrevYearStoreCount(request));
-        List<ReportDTO.StoreRankResult> rankList  = reportMapper.selectDistrictStoreRank(request);
+        List<StoreRankResult> rankList  = reportMapper.selectDistrictStoreRank(request);
         ReportDTO.AvgOperatingResult avgMonths    = reportMapper.selectAvgOperatingMonths(request);
         ReportDTO.IndustryDistributionResult dist = reportMapper.selectIndustryDistribution(request);
         if (dist == null) dist = ReportDTO.IndustryDistributionResult.builder().build();
@@ -328,4 +327,136 @@ public class ReportService {
     private ReportDTO.ResidentTotalResult nullSafeResident(ReportDTO.ResidentTotalResult result) {
         return result != null ? result : ReportDTO.ResidentTotalResult.builder().build();
     }
+
+    /**
+     * 직장인구, 성별 / 연령대별 조회
+     *
+     * @param request ReportDTO.Request
+     * @return ReportDTO.WorkerReportResponse
+     */
+    @Transactional
+    public ReportDTO.WorkerReportResponse getWorkerReport(ReportDTO.Request request) {
+
+        log.info("[{}] 직장인구 리포트 조회 시작 - yearQuarter: [{}]",
+            request.getAdminDongCode(), request.getYearQuarter());
+
+        ReportDTO.WorkerPopulationResult current = reportMapper.selectWorkerPopulation(request);
+        if (current == null) current = ReportDTO.WorkerPopulationResult.builder().build();
+
+        ReportDTO.WorkerTotalResult prevQuarter = reportMapper.selectPrevQuarterWorker(request);
+        if (prevQuarter == null) prevQuarter = ReportDTO.WorkerTotalResult.builder().build();
+
+        ReportDTO.WorkerTotalResult prevYear = reportMapper.selectPrevYearWorker(request);
+        if (prevYear == null) prevYear = ReportDTO.WorkerTotalResult.builder().build();
+
+        log.info("[{}] 직장인구 리포트 조회 완료 - totalWorkerPopulation: [{}]",
+            request.getAdminDongCode(), current.getTotalWorkerPopulation());
+
+        return ReportDTO.WorkerReportResponse.builder()
+            .totalWorkerPopulation(current.getTotalWorkerPopulation())
+            .prevQuarterDiff(current.getTotalWorkerPopulation() - prevQuarter.getTotalWorkerPopulation())
+            .prevYearDiff(current.getTotalWorkerPopulation() - prevYear.getTotalWorkerPopulation())
+            .maleWorkerPopulation(current.getMaleWorkerPopulation())
+            .femaleWorkerPopulation(current.getFemaleWorkerPopulation())
+            .age10WorkerPopulation(current.getAge10WorkerPopulation())
+            .age20WorkerPopulation(current.getAge20WorkerPopulation())
+            .age30WorkerPopulation(current.getAge30WorkerPopulation())
+            .age40WorkerPopulation(current.getAge40WorkerPopulation())
+            .age50WorkerPopulation(current.getAge50WorkerPopulation())
+            .age60AboveWorkerPopulation(current.getAge60AboveWorkerPopulation())
+            .maleAge10WorkerPopulation(current.getMaleAge10WorkerPopulation())
+            .maleAge20WorkerPopulation(current.getMaleAge20WorkerPopulation())
+            .maleAge30WorkerPopulation(current.getMaleAge30WorkerPopulation())
+            .maleAge40WorkerPopulation(current.getMaleAge40WorkerPopulation())
+            .maleAge50WorkerPopulation(current.getMaleAge50WorkerPopulation())
+            .maleAge60AboveWorkerPopulation(current.getMaleAge60AboveWorkerPopulation())
+            .femaleAge10WorkerPopulation(current.getFemaleAge10WorkerPopulation())
+            .femaleAge20WorkerPopulation(current.getFemaleAge20WorkerPopulation())
+            .femaleAge30WorkerPopulation(current.getFemaleAge30WorkerPopulation())
+            .femaleAge40WorkerPopulation(current.getFemaleAge40WorkerPopulation())
+            .femaleAge50WorkerPopulation(current.getFemaleAge50WorkerPopulation())
+            .femaleAge60AboveWorkerPopulation(current.getFemaleAge60AboveWorkerPopulation())
+            .build();
+    }
+
+    /**
+     * 추정매출, 요일 / 시간대 / 성별 / 연령대별 조회
+     *
+     * @param request ReportDTO.Request
+     * @return ReportDTO.SalesReportResponse
+     */
+    @Transactional
+    public ReportDTO.SalesReportResponse getSalesReport(ReportDTO.Request request) {
+
+        log.info("[{}] 추정매출 리포트 조회 시작 - yearQuarter: [{}]",
+            request.getAdminDongCode(), request.getYearQuarter());
+
+        ReportDTO.EstimatedSalesResult current = reportMapper.selectEstimatedSales(request);
+        if (current == null) current = ReportDTO.EstimatedSalesResult.builder().build();
+
+        ReportDTO.SalesTotalResult prevQuarter = reportMapper.selectPrevQuarterSales(request);
+        if (prevQuarter == null) prevQuarter = ReportDTO.SalesTotalResult.builder().build();
+
+        ReportDTO.SalesTotalResult prevYear = reportMapper.selectPrevYearSales(request);
+        if (prevYear == null) prevYear = ReportDTO.SalesTotalResult.builder().build();
+
+        log.info("[{}] 추정매출 리포트 조회 완료 - monthlySalesAmount: [{}]",
+            request.getAdminDongCode(), current.getMonthlySalesAmount());
+
+        return ReportDTO.SalesReportResponse.builder()
+            .monthlySalesAmount(current.getMonthlySalesAmount())
+            .prevQuarterAmountDiff(current.getMonthlySalesAmount() - prevQuarter.getMonthlySalesAmount())
+            .prevYearAmountDiff(current.getMonthlySalesAmount() - prevYear.getMonthlySalesAmount())
+            .monthlySalesCount(current.getMonthlySalesCount())
+            .prevQuarterCountDiff(current.getMonthlySalesCount() - prevQuarter.getMonthlySalesCount())
+            .prevYearCountDiff(current.getMonthlySalesCount() - prevYear.getMonthlySalesCount())
+            .weekdaySalesAmount(current.getWeekdaySalesAmount())
+            .weekendSalesAmount(current.getWeekendSalesAmount())
+            .mondaySalesAmount(current.getMondaySalesAmount())
+            .tuesdaySalesAmount(current.getTuesdaySalesAmount())
+            .wednesdaySalesAmount(current.getWednesdaySalesAmount())
+            .thursdaySalesAmount(current.getThursdaySalesAmount())
+            .fridaySalesAmount(current.getFridaySalesAmount())
+            .saturdaySalesAmount(current.getSaturdaySalesAmount())
+            .sundaySalesAmount(current.getSundaySalesAmount())
+            .time0006SalesAmount(current.getTime0006SalesAmount())
+            .time0611SalesAmount(current.getTime0611SalesAmount())
+            .time1114SalesAmount(current.getTime1114SalesAmount())
+            .time1417SalesAmount(current.getTime1417SalesAmount())
+            .time1721SalesAmount(current.getTime1721SalesAmount())
+            .time2124SalesAmount(current.getTime2124SalesAmount())
+            .maleSalesAmount(current.getMaleSalesAmount())
+            .femaleSalesAmount(current.getFemaleSalesAmount())
+            .age10SalesAmount(current.getAge10SalesAmount())
+            .age20SalesAmount(current.getAge20SalesAmount())
+            .age30SalesAmount(current.getAge30SalesAmount())
+            .age40SalesAmount(current.getAge40SalesAmount())
+            .age50SalesAmount(current.getAge50SalesAmount())
+            .age60AboveSalesAmount(current.getAge60AboveSalesAmount())
+            .weekdaySalesCount(current.getWeekdaySalesCount())
+            .weekendSalesCount(current.getWeekendSalesCount())
+            .mondaySalesCount(current.getMondaySalesCount())
+            .tuesdaySalesCount(current.getTuesdaySalesCount())
+            .wednesdaySalesCount(current.getWednesdaySalesCount())
+            .thursdaySalesCount(current.getThursdaySalesCount())
+            .fridaySalesCount(current.getFridaySalesCount())
+            .saturdaySalesCount(current.getSaturdaySalesCount())
+            .sundaySalesCount(current.getSundaySalesCount())
+            .time0006SalesCount(current.getTime0006SalesCount())
+            .time0611SalesCount(current.getTime0611SalesCount())
+            .time1114SalesCount(current.getTime1114SalesCount())
+            .time1417SalesCount(current.getTime1417SalesCount())
+            .time1721SalesCount(current.getTime1721SalesCount())
+            .time2124SalesCount(current.getTime2124SalesCount())
+            .maleSalesCount(current.getMaleSalesCount())
+            .femaleSalesCount(current.getFemaleSalesCount())
+            .age10SalesCount(current.getAge10SalesCount())
+            .age20SalesCount(current.getAge20SalesCount())
+            .age30SalesCount(current.getAge30SalesCount())
+            .age40SalesCount(current.getAge40SalesCount())
+            .age50SalesCount(current.getAge50SalesCount())
+            .age60AboveSalesCount(current.getAge60AboveSalesCount())
+            .build();
+    }
+
 }
