@@ -38,6 +38,7 @@ public class PolicyChatbotAiClient {
             userProfile.put("industry", request.getUserProfile().getIndustry());
             userProfile.put("age", request.getUserProfile().getAge());
             userProfile.put("has_business_registration", request.getUserProfile().getHasBusinessRegistration());
+            userProfile.put("region", request.getUserProfile().getRegion());
             body.put("user_profile", userProfile);
         } else {
             body.put("user_profile", null);
