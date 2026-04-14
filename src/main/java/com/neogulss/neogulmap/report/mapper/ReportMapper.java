@@ -5,15 +5,10 @@ import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
-/**
- * 분석 리포트 Mapper
- */
+
 @Mapper
 public interface ReportMapper {
 
-    // =====================================================
-    // 점포 관련
-    // =====================================================
 
     /**
      * 현재 분기 점포수 조회
@@ -63,9 +58,6 @@ public interface ReportMapper {
      */
     ReportDTO.IndustryDistributionResult selectIndustryDistribution(ReportDTO.Request request);
 
-    // =====================================================
-    // 유동인구 관련
-    // =====================================================
 
     /**
      * 현재 분기 유동인구 조회 (성별 / 연령대 / 시간대 / 요일별 포함)
@@ -99,9 +91,6 @@ public interface ReportMapper {
      */
     List<ReportDTO.FloatingRankResult> selectDistrictFloatingRank(ReportDTO.Request request);
 
-    // =====================================================
-    // 주거인구 관련
-    // =====================================================
 
     /**
      * 현재 분기 주거인구 조회 (성별 / 연령대별 포함)
@@ -127,9 +116,6 @@ public interface ReportMapper {
      */
     ReportDTO.ResidentTotalResult selectPrevYearResident(ReportDTO.Request request);
 
-    // =====================================================
-    // 가구세대 / 아파트 관련
-    // =====================================================
 
     /**
      * 현재 분기 가구세대 조회
@@ -163,9 +149,7 @@ public interface ReportMapper {
      */
     ReportDTO.ApartmentResult selectApartment(ReportDTO.Request request);
 
-    // =====================================================
-    // 집객시설 관련
-    // =====================================================
+
 
     /**
      * 집객시설 현황 조회
@@ -175,9 +159,7 @@ public interface ReportMapper {
      */
     ReportDTO.FacilityResult selectFacility(ReportDTO.Request request);
 
-    // =====================================================
-    // 소득 / 소비트렌드 관련
-    // =====================================================
+
 
     /**
      * 소득 및 소비트렌드 조회
@@ -187,9 +169,7 @@ public interface ReportMapper {
      */
     ReportDTO.IncomeResult selectIncome(ReportDTO.Request request);
 
-    // =====================================================
-    // 상권변화지표 관련
-    // =====================================================
+
 
     /**
      * 상권변화지표 조회
@@ -198,4 +178,54 @@ public interface ReportMapper {
      * @return ReportDTO.CommercialIndicatorResult
      */
     ReportDTO.CommercialIndicatorResult selectCommercialIndicator(ReportDTO.Request request);
+
+
+    /**
+     * 현재 분기 직장인구 조회
+     *
+     * @param request ReportDTO.Request
+     * @return ReportDTO.WorkerPopulationResult
+     */
+    ReportDTO.WorkerPopulationResult selectWorkerPopulation(ReportDTO.Request request);
+
+    /**
+     * 전분기 직장인구 합계 조회
+     *
+     * @param request ReportDTO.Request
+     * @return ReportDTO.WorkerTotalResult
+     */
+    ReportDTO.WorkerTotalResult selectPrevQuarterWorker(ReportDTO.Request request);
+
+    /**
+     * 전년 동분기 직장인구 합계 조회
+     *
+     * @param request ReportDTO.Request
+     * @return ReportDTO.WorkerTotalResult
+     */
+    ReportDTO.WorkerTotalResult selectPrevYearWorker(ReportDTO.Request request);
+
+
+    /**
+     * 현재 분기 추정매출 조회
+     *
+     * @param request ReportDTO.Request
+     * @return ReportDTO.EstimatedSalesResult
+     */
+    ReportDTO.EstimatedSalesResult selectEstimatedSales(ReportDTO.Request request);
+
+    /**
+     * 전분기 추정매출 합계 조회
+     *
+     * @param request ReportDTO.Request
+     * @return ReportDTO.SalesTotalResult
+     */
+    ReportDTO.SalesTotalResult selectPrevQuarterSales(ReportDTO.Request request);
+
+    /**
+     * 전년 동분기 추정매출 합계 조회
+     *
+     * @param request ReportDTO.Request
+     * @return ReportDTO.SalesTotalResult
+     */
+    ReportDTO.SalesTotalResult selectPrevYearSales(ReportDTO.Request request);
 }

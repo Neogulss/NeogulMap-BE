@@ -8,9 +8,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.ibatis.type.Alias;
 
-/**
- * 분석 리포트 DTO
- */
 public class ReportDTO {
 
     /**
@@ -31,10 +28,6 @@ public class ReportDTO {
         /** 서비스 업종 코드 (점포 관련 API에서만 사용) */
         private String serviceIndustryCode;
     }
-
-    // =====================================================
-    // 점포수 관련
-    // =====================================================
 
     /**
      * 점포수 조회 결과
@@ -108,9 +101,6 @@ public class ReportDTO {
         private int retailCount;
     }
 
-    // =====================================================
-    // 유동인구 관련
-    // =====================================================
 
     /**
      * 유동인구 전체 조회 결과 (성별 / 연령대 / 시간대 / 요일별 포함)
@@ -201,10 +191,6 @@ public class ReportDTO {
         private long totalFloatingPopulation;
     }
 
-    // =====================================================
-    // 주거인구 관련
-    // =====================================================
-
     /**
      * 주거인구 전체 조회 결과 (성별 / 연령대별 포함)
      */
@@ -271,10 +257,6 @@ public class ReportDTO {
         private int totalHouseholdCount;
     }
 
-    // =====================================================
-    // 아파트 관련
-    // =====================================================
-
     /**
      * 아파트 현황 조회 결과
      */
@@ -318,9 +300,7 @@ public class ReportDTO {
         private int apartmentAvgPrice;
     }
 
-    // =====================================================
-    // 집객시설 관련
-    // =====================================================
+
 
     /**
      * 집객시설 현황 조회 결과
@@ -375,9 +355,6 @@ public class ReportDTO {
         private int busStopCount;
     }
 
-    // =====================================================
-    // 소득 / 소비트렌드 관련
-    // =====================================================
 
     /**
      * 소득 및 소비트렌드 조회 결과
@@ -418,9 +395,6 @@ public class ReportDTO {
         private long foodServiceExpenditureAmount;
     }
 
-    // =====================================================
-    // 상권변화지표 관련
-    // =====================================================
 
     /**
      * 상권변화지표 조회 결과
@@ -447,9 +421,7 @@ public class ReportDTO {
         private int seoulClosedBusinessMonthAvg;
     }
 
-    // =====================================================
-    // Response DTO
-    // =====================================================
+
 
     /**
      * 점포 리포트 Response
@@ -673,6 +645,374 @@ public class ReportDTO {
         private int apartmentAvgArea;
         /** 평균 시가 */
         private int apartmentAvgPrice;
+    }
+
+
+    /**
+     * 직장인구 전체 조회 결과 (성별 / 연령대별 포함)
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class WorkerPopulationResult {
+        /** 총 직장인구 수 */
+        private long totalWorkerPopulation;
+        /** 남성 직장인구 수 */
+        private long maleWorkerPopulation;
+        /** 여성 직장인구 수 */
+        private long femaleWorkerPopulation;
+        /** 10대 직장인구 수 */
+        private long age10WorkerPopulation;
+        /** 20대 직장인구 수 */
+        private long age20WorkerPopulation;
+        /** 30대 직장인구 수 */
+        private long age30WorkerPopulation;
+        /** 40대 직장인구 수 */
+        private long age40WorkerPopulation;
+        /** 50대 직장인구 수 */
+        private long age50WorkerPopulation;
+        /** 60대 이상 직장인구 수 */
+        private long age60AboveWorkerPopulation;
+        /** 남성 10대 직장인구 수*/
+        private long maleAge10WorkerPopulation;
+        /** 남성 20대 직장인구 수 */
+        private long maleAge20WorkerPopulation;
+        /** 남성 30대 직장인구 수 */
+        private long maleAge30WorkerPopulation;
+        /** 남성 40대 직장인구 수 */
+        private long maleAge40WorkerPopulation;
+        /** 남성 50대 직장인구 수 */
+        private long maleAge50WorkerPopulation;
+        /** 남성 60대 이상 직장인구 수 */
+        private long maleAge60AboveWorkerPopulation;
+        /** 여성 10대 직장인구 수 */
+        private long femaleAge10WorkerPopulation;
+        /** 여성 20대 직장인구 수 */
+        private long femaleAge20WorkerPopulation;
+        /** 여성 30대 직장인구 수 */
+        private long femaleAge30WorkerPopulation;
+        /** 여성 40대 직장인구 수 */
+        private long femaleAge40WorkerPopulation;
+        /** 여성 50대 직장인구 수 */
+        private long femaleAge50WorkerPopulation;
+        /** 여성 60대 이상 직장인구 수 */
+        private long femaleAge60AboveWorkerPopulation;
+    }
+
+    /**
+     * 직장인구 합계 조회 결과 (전분기 / 전년 동분기 비교용)
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class WorkerTotalResult {
+        /** 총 직장인구 수 */
+        private long totalWorkerPopulation;
+    }
+
+    /**
+     * 직장인구 리포트 Response
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class WorkerReportResponse {
+        /** 현재 분기 총 직장인구 수 */
+        private long totalWorkerPopulation;
+        /** 전분기 대비 직장인구 수 */
+        private long prevQuarterDiff;
+        /** 전년 동분기 대비 직장인구 수 */
+        private long prevYearDiff;
+        /** 남성 직장인구 수 */
+        private long maleWorkerPopulation;
+        /** 여성 직장인구 수 */
+        private long femaleWorkerPopulation;
+        /** 10대 직장인구 수 */
+        private long age10WorkerPopulation;
+        /** 20대 직장인구 수 */
+        private long age20WorkerPopulation;
+        /** 30대 직장인구 수 */
+        private long age30WorkerPopulation;
+        /** 40대 직장인구 수 */
+        private long age40WorkerPopulation;
+        /** 50대 직장인구 수 */
+        private long age50WorkerPopulation;
+        /** 60대 이상 직장인구 수 */
+        private long age60AboveWorkerPopulation;
+        /** 남성 10대 직장인구 수 */
+        private long maleAge10WorkerPopulation;
+        /** 남성 20대 직장인구 수 */
+        private long maleAge20WorkerPopulation;
+        /** 남성 30대 직장인구 수 */
+        private long maleAge30WorkerPopulation;
+        /** 남성 40대 직장인구 수 */
+        private long maleAge40WorkerPopulation;
+        /** 남성 50대 직장인구 수 */
+        private long maleAge50WorkerPopulation;
+        /** 남성 60대 이상 직장인구 수 */
+        private long maleAge60AboveWorkerPopulation;
+        /** 여성 10대 직장인구 수 */
+        private long femaleAge10WorkerPopulation;
+        /** 여성 20대 직장인구 수 */
+        private long femaleAge20WorkerPopulation;
+        /** 여성 30대 직장인구 수 */
+        private long femaleAge30WorkerPopulation;
+        /** 여성 40대 직장인구 수 */
+        private long femaleAge40WorkerPopulation;
+        /** 여성 50대 직장인구 수 */
+        private long femaleAge50WorkerPopulation;
+        /** 여성 60대 이상 직장인구 수 */
+        private long femaleAge60AboveWorkerPopulation;
+    }
+    
+
+    /**
+     * 추정매출 조회 결과
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class EstimatedSalesResult {
+        /** 당월 매출 금액 */
+        private long monthlySalesAmount;
+        /** 당월 매출 건수 */
+        private int monthlySalesCount;
+        /** 주중 매출 금액 */
+        private long weekdaySalesAmount;
+        /** 주말 매출 금액 */
+        private long weekendSalesAmount;
+        /** 월요일 매출 금액 */
+        private long mondaySalesAmount;
+        /** 화요일 매출 금액 */
+        private long tuesdaySalesAmount;
+        /** 수요일 매출 금액 */
+        private long wednesdaySalesAmount;
+        /** 목요일 매출 금액 */
+        private long thursdaySalesAmount;
+        /** 금요일 매출 금액 */
+        private long fridaySalesAmount;
+        /** 토요일 매출 금액 */
+        private long saturdaySalesAmount;
+        /** 일요일 매출 금액 */
+        private long sundaySalesAmount;
+        /** 00~06시 매출 금액 */
+        private long time0006SalesAmount;
+        /** 06~11시 매출 금액 */
+        private long time0611SalesAmount;
+        /** 11~14시 매출 금액 */
+        private long time1114SalesAmount;
+        /** 14~17시 매출 금액 */
+        private long time1417SalesAmount;
+        /** 17~21시 매출 금액 */
+        private long time1721SalesAmount;
+        /** 21~24시 매출 금액 */
+        private long time2124SalesAmount;
+        /** 남성 매출 금액 */
+        private long maleSalesAmount;
+        /** 여성 매출 금액 */
+        private long femaleSalesAmount;
+        /** 10대 매출 금액 */
+        private long age10SalesAmount;
+        /** 20대 매출 금액 */
+        private long age20SalesAmount;
+        /** 30대 매출 금액 */
+        private long age30SalesAmount;
+        /** 40대 매출 금액 */
+        private long age40SalesAmount;
+        /** 50대 매출 금액 */
+        private long age50SalesAmount;
+        /** 60대 이상 매출 금액 */
+        private long age60AboveSalesAmount;
+        /** 주중 매출 건수 */
+        private int weekdaySalesCount;
+        /** 주말 매출 건수 */
+        private int weekendSalesCount;
+        /** 월요일 매출 건수 */
+        private int mondaySalesCount;
+        /** 화요일 매출 건수 */
+        private int tuesdaySalesCount;
+        /** 수요일 매출 건수 */
+        private int wednesdaySalesCount;
+        /** 목요일 매출 건수 */
+        private int thursdaySalesCount;
+        /** 금요일 매출 건수 */
+        private int fridaySalesCount;
+        /** 토요일 매출 건수 */
+        private int saturdaySalesCount;
+        /** 일요일 매출 건수 */
+        private int sundaySalesCount;
+        /** 00~06시 매출 건수 */
+        private int time0006SalesCount;
+        /** 06~11시 매출 건수 */
+        private int time0611SalesCount;
+        /** 11~14시 매출 건수 */
+        private int time1114SalesCount;
+        /** 14~17시 매출 건수 */
+        private int time1417SalesCount;
+        /** 17~21시 매출 건수 */
+        private int time1721SalesCount;
+        /** 21~24시 매출 건수 */
+        private int time2124SalesCount;
+        /** 남성 매출 건수 */
+        private int maleSalesCount;
+        /** 여성 매출 건수 */
+        private int femaleSalesCount;
+        /** 10대 매출 건수 */
+        private int age10SalesCount;
+        /** 20대 매출 건수 */
+        private int age20SalesCount;
+        /** 30대 매출 건수 */
+        private int age30SalesCount;
+        /** 40대 매출 건수 */
+        private int age40SalesCount;
+        /** 50대 매출 건수 */
+        private int age50SalesCount;
+        /** 60대 이상 매출 건수 */
+        private int age60AboveSalesCount;
+    }
+
+    /**
+     * 추정매출 합계 조회 결과 (전분기 / 전년 동분기 비교용)
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class SalesTotalResult {
+        /** 당월 매출 금액 */
+        private long monthlySalesAmount;
+        /** 당월 매출 건수 */
+        private int monthlySalesCount;
+    }
+
+    /**
+     * 추정매출 리포트 Response
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class SalesReportResponse {
+        /** 현재 분기 당월 매출 금액 */
+        private long monthlySalesAmount;
+        /** 전분기 대비 매출 금액 */
+        private long prevQuarterAmountDiff;
+        /** 전년 동분기 대비 매출 금액 */
+        private long prevYearAmountDiff;
+        /** 현재 분기 당월 매출 건수 */
+        private int monthlySalesCount;
+        /** 전분기 대비 매출 건수 */
+        private int prevQuarterCountDiff;
+        /** 전년 동분기 대비 매출 건수 */
+        private int prevYearCountDiff;
+        /** 주중 매출 금액 */
+        private long weekdaySalesAmount;
+        /** 주말 매출 금액 */
+        private long weekendSalesAmount;
+        /** 월요일 매출 금액 */
+        private long mondaySalesAmount;
+        /** 화요일 매출 금액 */
+        private long tuesdaySalesAmount;
+        /** 수요일 매출 금액 */
+        private long wednesdaySalesAmount;
+        /** 목요일 매출 금액 */
+        private long thursdaySalesAmount;
+        /** 금요일 매출 금액 */
+        private long fridaySalesAmount;
+        /** 토요일 매출 금액 */
+        private long saturdaySalesAmount;
+        /** 일요일 매출 금액 */
+        private long sundaySalesAmount;
+        /** 00~06시 매출 금액 */
+        private long time0006SalesAmount;
+        /** 06~11시 매출 금액 */
+        private long time0611SalesAmount;
+        /** 11~14시 매출 금액 */
+        private long time1114SalesAmount;
+        /** 14~17시 매출 금액 */
+        private long time1417SalesAmount;
+        /** 17~21시 매출 금액 */
+        private long time1721SalesAmount;
+        /** 21~24시 매출 금액 */
+        private long time2124SalesAmount;
+        /** 남성 매출 금액 */
+        private long maleSalesAmount;
+        /** 여성 매출 금액 */
+        private long femaleSalesAmount;
+        /** 10대 매출 금액 */
+        private long age10SalesAmount;
+        /** 20대 매출 금액 */
+        private long age20SalesAmount;
+        /** 30대 매출 금액 */
+        private long age30SalesAmount;
+        /** 40대 매출 금액 */
+        private long age40SalesAmount;
+        /** 50대 매출 금액 */
+        private long age50SalesAmount;
+        /** 60대 이상 매출 금액 */
+        private long age60AboveSalesAmount;
+        /** 주중 매출 건수 */
+        private int weekdaySalesCount;
+        /** 주말 매출 건수 */
+        private int weekendSalesCount;
+        /** 월요일 매출 건수 */
+        private int mondaySalesCount;
+        /** 화요일 매출 건수 */
+        private int tuesdaySalesCount;
+        /** 수요일 매출 건수 */
+        private int wednesdaySalesCount;
+        /** 목요일 매출 건수 */
+        private int thursdaySalesCount;
+        /** 금요일 매출 건수 */
+        private int fridaySalesCount;
+        /** 토요일 매출 건수 */
+        private int saturdaySalesCount;
+        /** 일요일 매출 건수 */
+        private int sundaySalesCount;
+        /** 00~06시 매출 건수 */
+        private int time0006SalesCount;
+        /** 06~11시 매출 건수 */
+        private int time0611SalesCount;
+        /** 11~14시 매출 건수 */
+        private int time1114SalesCount;
+        /** 14~17시 매출 건수 */
+        private int time1417SalesCount;
+        /** 17~21시 매출 건수 */
+        private int time1721SalesCount;
+        /** 21~24시 매출 건수 */
+        private int time2124SalesCount;
+        /** 남성 매출 건수 */
+        private int maleSalesCount;
+        /** 여성 매출 건수 */
+        private int femaleSalesCount;
+        /** 10대 매출 건수 */
+        private int age10SalesCount;
+        /** 20대 매출 건수 */
+        private int age20SalesCount;
+        /** 30대 매출 건수 */
+        private int age30SalesCount;
+        /** 40대 매출 건수 */
+        private int age40SalesCount;
+        /** 50대 매출 건수 */
+        private int age50SalesCount;
+        /** 60대 이상 매출 건수 */
+        private int age60AboveSalesCount;
     }
 
 }
