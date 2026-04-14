@@ -75,7 +75,7 @@ public class PolicyChatbotService {
 
         ChatLog chatLog = new ChatLog();
         chatLog.setSession(session);
-        chatLog.setContents(toJson(aiResponse.getChatLogPayload()));
+        chatLog.setContents(toJson(buildChatLogContents(aiResponse, request)));
         ChatLog savedChatLog = chatLogRepository.save(chatLog);
 
         RagLog ragLog =  new RagLog();
@@ -413,6 +413,32 @@ public class PolicyChatbotService {
         return response;
     }
 
+    private ChatLogContents buildChatLogContents(
+            PolicyChatbotAiResponse aiResponse,
+            PolicyChatbotSendRequest request
+    ) {
+        ChatLogContents contents = new ChatLogContents();
+
+        PolicyChatbotAiResponse.ChatLogPayload payload = aiResponse.getChatLogPayload();
+        if (payload != null) {
+            contents.setUserQuery(payload.getUserQuery());
+            contents.setBotResponse(payload.getBotResponse());
+            contents.setModel(payload.getModel());
+            contents.setTurnLatencyMs(payload.getTurnLatencyMs());
+        }
+
+        if (request.getUserProfile() != null) {
+            ChatLogUserProfile userProfile = new ChatLogUserProfile();
+            userProfile.setIndustry(request.getUserProfile().getIndustry());
+            userProfile.setAge(request.getUserProfile().getAge());
+            userProfile.setHasBusinessRegistration(request.getUserProfile().getHasBusinessRegistration());
+            userProfile.setRegion(request.getUserProfile().getRegion());
+            contents.setUserProfile(userProfile);
+        }
+
+        return contents;
+    }
+
     private String toJson(Object value){
         try{
             return objectMapper.writeValueAsString(value);
@@ -448,6 +474,17 @@ public class PolicyChatbotService {
         private String botResponse;
         private String model;
         private Integer turnLatencyMs;
+        private ChatLogUserProfile userProfile;
+    }
+
+    @Getter
+    @Setter
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+    public static class ChatLogUserProfile {
+        private String industry;
+        private Integer age;
+        private Boolean hasBusinessRegistration;
+        private String region;
     }
 
     private record ScoredQuestion(RecommendedQuestion question, double score) {}
