@@ -433,6 +433,7 @@ public class PolicyChatbotService {
             userProfile.setAge(request.getUserProfile().getAge());
             userProfile.setHasBusinessRegistration(request.getUserProfile().getHasBusinessRegistration());
             userProfile.setRegion(request.getUserProfile().getRegion());
+            userProfile.setStartupStatus(request.getUserProfile().getStartupStatus());
             contents.setUserProfile(userProfile);
         }
 
@@ -485,6 +486,7 @@ public class PolicyChatbotService {
         private Integer age;
         private Boolean hasBusinessRegistration;
         private String region;
+        private String startupStatus;
     }
 
     private record ScoredQuestion(RecommendedQuestion question, double score) {}
