@@ -67,7 +67,7 @@ admin:
 python:
   ai:
     base-url: http://localhost:8000
-
+    pred-url: http://localhost:8002
 ---
 spring:
   jpa:
