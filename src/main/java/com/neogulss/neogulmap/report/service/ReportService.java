@@ -459,4 +459,24 @@ public class ReportService {
             .build();
     }
 
+    /**
+     * 행정동 내 업종별 점포수 TOP5 + 월매출 TOP5 조회
+     *
+     * @param request ReportDTO.Request (adminDongCode, yearQuarter)
+     * @return ReportDTO.TopIndustriesResponse
+     */
+    @Transactional
+    public ReportDTO.TopIndustriesResponse getTopIndustries(ReportDTO.Request request) {
+        log.info("[{}] 업종 TOP5 조회 시작 - yearQuarter: [{}]",
+            request.getAdminDongCode(), request.getYearQuarter());
+
+        List<ReportDTO.IndustryRankItem> storeTop5 = reportMapper.selectStoreTop5(request);
+        List<ReportDTO.IndustryRankItem> salesTop5 = reportMapper.selectSalesTop5(request);
+
+        return ReportDTO.TopIndustriesResponse.builder()
+            .storeTop5(storeTop5)
+            .salesTop5(salesTop5)
+            .build();
+    }
+
 }
