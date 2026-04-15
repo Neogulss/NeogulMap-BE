@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.neogulss.neogulmap.report.mapper.SalesPredMapper">
+
+    <!-- 월 매출액 예측 피처 조회  -->
+    <select id="selectSalesPredFeatures"
+            parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+            resultType="com.neogulss.neogulmap.report.dto.SalesPredDTO$DbResult">
+        SELECT
+            C.ADMIN_DONG_CODE AS adminDongCode,
+            C.SERVICE_INDUSTRY_CODE AS serviceIndustryCode,
+            C.QUARTER_CODE AS quarterCode,
+            C.OPERATING_STORE_COUNT AS operatingStoreCount,
+            C.TOTAL_OPERATING_STORE_COUNT AS totalOperatingStoreCount,
+            C.AREA_SIZE AS areaSize,
+            C.OPERATING_FRANCHISE_STORE_RATIO AS operatingFranchiseStoreRatio,
+            C.COMPETITION_DENSITY AS competitionDensity,
+            C.FLOATING_POP_TOTAL_LOG AS floatingPopTotalLog,
+            C.FLOATING_POP_PER_STORE AS floatingPopPerStore,
+            C.YOUNG_POP_RATIO AS youngPopRatio,
+            C.WEEKEND_POP_RATIO AS weekendPopRatio,
+            C.AVG_MONTHLY_INCOME AS avgMonthlyIncome,
+            C.FOOD_EXPENDITURE_RATIO AS foodExpenditureRatio,
+            C.ENTERTAINMENT_EXPENDITURE_RATIO AS entertainmentExpenditureRatio,
+            C.EDUCATION_EXPENDITURE_RATIO AS educationExpenditureRatio,
+            C.LEISURE_EXPENDITURE_RATIO AS leisureExpenditureRatio,
+            C.TOTAL_STORE_COUNT_CHANGE AS totalStoreCountChange,
+            C.FLOATING_POP_CHANGE AS floatingPopChange,
+            C.CLOSURE_RATE_CHANGE AS closureRateChange,
+            S.SALES_LAG1_LOG AS salesLag1Log,
+            S.SALES_LAG2_LOG AS salesLag2Log,
+            S.SALES_LAG3_LOG AS salesLag3Log,
+            S.SALES_LAG4_LOG AS salesLag4Log,
+            S.SALES_MA2 AS salesMa2,
+            S.SALES_MA3 AS salesMa3,
+            S.SALES_STD2 AS salesStd2,
+            S.SALES_STD3 AS salesStd3,
+            S.SALES_GROWTH_RATE AS salesGrowthRate,
+            S.SALES_TO_MA3_RATIO AS salesToMa3Ratio,
+            S.SALES_CHANGE_RATE AS salesChangeRate,
+            S.SALES_TO_INDUSTRY_AVG_RATIO AS salesToIndustryAvgRatio,
+            S.FLOATING_POP_DENSITY AS floatingPopDensity,
+            S.TOTAL_STORE_COUNT_LAG1 AS totalStoreCountLag1,
+            S.TOTAL_POP_LAG1 AS totalPopLag1,
+            S.COMPETITION_RATIO AS competitionRatio
+
+        FROM REPORT_DATA_COMMON C
+
+        JOIN REPORT_DATA_SALES S
+        ON C.BASE_YEAR_QUARTER_CODE = S.BASE_YEAR_QUARTER_CODE AND C.ADMIN_DONG_CODE = S.ADMIN_DONG_CODE AND C.SERVICE_INDUSTRY_CODE = S.SERVICE_INDUSTRY_CODE
+
+        WHERE
+            C.ADMIN_DONG_CODE = #{adminDongCode} AND C.SERVICE_INDUSTRY_CODE = #{serviceIndustryCode}
+    </select>
+
+</mapper>

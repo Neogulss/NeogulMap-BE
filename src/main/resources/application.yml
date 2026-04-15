@@ -1,5 +1,6 @@
 server:
   port: 8081
+
 ---
 spring:
   mvc:
@@ -40,6 +41,7 @@ spring:
       idle-timeout: 30000
       max-lifetime: 1800000
       connection-timeout: 30000
+
 ---
 # 기존 application.yml 에 추가
 seoul:
@@ -60,9 +62,11 @@ feign:
         connectTimeout: 5000
         readTimeout: 10000
         loggerLevel: BASIC
+
 ---
 admin:
   user-id: admin
+
 ---
 python:
   ai:
