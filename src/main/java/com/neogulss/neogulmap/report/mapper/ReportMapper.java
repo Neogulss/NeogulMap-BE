@@ -206,6 +206,22 @@ public interface ReportMapper {
 
 
     /**
+     * 행정동 내 업종별 점포수 TOP5 조회
+     *
+     * @param request ReportDTO.Request
+     * @return List&lt;ReportDTO.IndustryRankItem&gt;
+     */
+    List<ReportDTO.IndustryRankItem> selectStoreTop5(ReportDTO.Request request);
+
+    /**
+     * 행정동 내 업종별 월매출 TOP5 조회
+     *
+     * @param request ReportDTO.Request
+     * @return List&lt;ReportDTO.IndustryRankItem&gt;
+     */
+    List<ReportDTO.IndustryRankItem> selectSalesTop5(ReportDTO.Request request);
+
+    /**
      * 현재 분기 추정매출 조회
      *
      * @param request ReportDTO.Request
