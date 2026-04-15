@@ -17,5 +17,6 @@ public class PolicyChatbotAiRequest {
         private Integer age;
         private Boolean hasBusinessRegistration;
         private String region;
+        private String startupStatus;
     }
 }
