@@ -1,5 +1,6 @@
 package com.neogulss.neogulmap.report.dto;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -1013,6 +1014,42 @@ public class ReportDTO {
         private int age50SalesCount;
         /** 60대 이상 매출 건수 */
         private int age60AboveSalesCount;
+    }
+
+    /**
+     * 업종별 순위 항목 (점포수 / 매출 공용)
+     */
+    @Alias("IndustryRankItem")
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class IndustryRankItem {
+        /** 업종명 */
+        private String industryName;
+        /** 점포 수 */
+        private int storeCount;
+        /** 월 매출액 */
+        private long monthlySalesAmount;
+    }
+
+    /**
+     * 업종 TOP5 응답 (점포수 TOP5 + 매출 TOP5)
+     */
+    @Alias("TopIndustriesResponse")
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class TopIndustriesResponse {
+        /** 업종별 점포수 TOP5 */
+        private List<IndustryRankItem> storeTop5;
+        /** 업종별 월매출 TOP5 */
+        private List<IndustryRankItem> salesTop5;
     }
 
 }

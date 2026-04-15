@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neogulss.neogulmap.report.mapper.RiskMapper">
+    <select id="selectRiskInput" parameterType="com.neogulss.neogulmap.report.dto.RiskDTO$RiskUserRequest" resultType="com.neogulss.neogulmap.report.dto.RiskDTO$RiskInput">
+        SELECT
+            c.base_year_quarter_code AS baseYearQuarterCode,
+            c.quarter_code AS quarterCode,
+            c.admin_dong_code AS adminDongCode,
+            c.service_industry_code AS serviceIndustryCode,
+            r.commercial_change_code AS commercialChangeCode,
+            c.operating_store_count AS operatingStoreCount,
+            c.total_operating_store_count AS totalOperatingStoreCount,
+            r.opening_rate AS openingRate,
+            c.operating_franchise_store_ratio AS operatingFranchiseStoreRatio,
+            c.competition_density AS competitionDensity,
+            c.area_size AS areaSize,
+            c.avg_monthly_income AS avgMonthlyIncome,
+            c.food_expenditure_ratio AS foodExpenditureRatio,
+            c.entertainment_expenditure_ratio AS entertainmentExpenditureRatio,
+            c.education_expenditure_ratio AS educationExpenditureRatio,
+            c.leisure_expenditure_ratio AS leisureExpenditureRatio,
+            c.floating_pop_total_log AS floatingPopTotalLog,
+            c.floating_pop_per_store AS floatingPopPerStore,
+            c.young_pop_ratio AS youngPopRatio,
+            c.weekend_pop_ratio AS weekendPopRatio,
+            r.avg_operating_months AS avgOperatingMonths,
+            r.avg_closure_months AS avgClosureMonths,
+            r.op_months_vs_closure_avg AS opMonthsVsClosureAvg,
+            r.operation_months_vs_seoul_avg AS operationMonthsVsSeoulAvg,
+            r.avg_sales_per_transaction AS avgSalesPerTransaction,
+            r.weekend_sales_ratio AS weekendSalesRatio,
+            r.sales_missing_flag AS salesMissingFlag,
+            r.sales_missing_type_code AS salesMissingTypeCode,
+            r.closure_rate_lag1 AS closureRateLag1,
+            c.closure_rate_change AS closureRateChange,
+            c.total_store_count_change AS totalStoreCountChange,
+            c.floating_pop_change AS floatingPopChange,
+            r.opening_rate_lag1 AS openingRateLag1,
+            r.avg_sales_per_transaction_lag1 AS avgSalesPerTransactionLag1
+        FROM REPORT_DATA_COMMON c
+                 JOIN REPORT_DATA_RISK r USING (base_year_quarter_code, admin_dong_code, service_industry_code)
+        WHERE c.admin_dong_code = #{adminDongCode}
+          AND c.service_industry_code = #{serviceIndustryCode}
+        ORDER BY c.base_year_quarter_code DESC
+        LIMIT 1
+    </select>
+
+    <insert id="upsertRiskOutput" parameterType="com.neogulss.neogulmap.report.dto.RiskDTO$RiskOutput">
+        INSERT INTO REPORT_DATA_PRED_RISK_RESULT (
+            base_year_quarter_code,
+            admin_dong_code,
+            service_industry_code,
+            risk_prob,
+            risk_closure_rate,
+            risk_level,
+            message,
+            top1_feature_name,
+            top1_feature_value,
+            top1_impact,
+            top1_direction,
+            top2_feature_name,
+            top2_feature_value,
+            top2_impact,
+            top2_direction,
+            top3_feature_name,
+            top3_feature_value,
+            top3_impact,
+            top3_direction,
+            model_version
+        ) VALUES (
+            #{baseYearQuarterCode},
+            #{adminDongCode},
+            #{serviceIndustryCode},
+            #{riskProb},
+            #{riskClosureRate},
+            #{riskLevel},
+            #{message},
+            #{top1FeatureName},
+            #{top1FeatureValue},
+            #{top1Impact},
+            #{top1Direction},
+            #{top2FeatureName},
+            #{top2FeatureValue},
+            #{top2Impact},
+            #{top2Direction},
+            #{top3FeatureName},
+            #{top3FeatureValue},
+            #{top3Impact},
+            #{top3Direction},
+            #{modelVersion}
+        )
+        ON DUPLICATE KEY UPDATE
+            risk_prob = VALUES(risk_prob),
+            risk_closure_rate = VALUES(risk_closure_rate),
+            risk_level = VALUES(risk_level),
+            message = VALUES(message),
+            top1_feature_name = VALUES(top1_feature_name),
+            top1_feature_value = VALUES(top1_feature_value),
+            top1_impact = VALUES(top1_impact),
+            top1_direction = VALUES(top1_direction),
+            top2_feature_name = VALUES(top2_feature_name),
+            top2_feature_value = VALUES(top2_feature_value),
+            top2_impact = VALUES(top2_impact),
+            top2_direction = VALUES(top2_direction),
+            top3_feature_name = VALUES(top3_feature_name),
+            top3_feature_value = VALUES(top3_feature_value),
+            top3_impact = VALUES(top3_impact),
+            top3_direction = VALUES(top3_direction),
+            model_version = VALUES(model_version),
+            updated_at = CURRENT_TIMESTAMP
+    </insert>
+
+    <select id="selectRiskOutput" parameterType="com.neogulss.neogulmap.report.dto.RiskDTO$RiskOutput" resultType="com.neogulss.neogulmap.report.dto.RiskDTO$RiskOutput">
+        SELECT
+            base_year_quarter_code AS baseYearQuarterCode,
+            admin_dong_code AS adminDongCode,
+            service_industry_code AS serviceIndustryCode,
+            risk_prob AS riskProb,
+            risk_closure_rate AS riskClosureRate,
+            risk_level AS riskLevel,
+            message AS message,
+            top1_feature_name AS top1FeatureName,
+            top1_feature_value AS top1FeatureValue,
+            top1_impact AS top1Impact,
+            top1_direction AS top1Direction,
+            top2_feature_name AS top2FeatureName,
+            top2_feature_value AS top2FeatureValue,
+            top2_impact AS top2Impact,
+            top2_direction AS top2Direction,
+            top3_feature_name AS top3FeatureName,
+            top3_feature_value AS top3FeatureValue,
+            top3_impact AS top3Impact,
+            top3_direction AS top3Direction,
+            model_version AS modelVersion,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM REPORT_DATA_PRED_RISK_RESULT
+        WHERE base_year_quarter_code = #{baseYearQuarterCode}
+          AND admin_dong_code = #{adminDongCode}
+          AND service_industry_code = #{serviceIndustryCode}
+    </select>
+
+</mapper>

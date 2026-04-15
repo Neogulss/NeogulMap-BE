@@ -422,6 +422,37 @@
   </select>
 
 
+  <!-- 행정동 내 업종별 점포수 TOP5 조회 -->
+  <select id="selectStoreTop5"
+    parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+    resultType="com.neogulss.neogulmap.report.dto.ReportDTO$IndustryRankItem">
+    SELECT
+      SC.SERVICE_CATEGORY_NAME AS industryName,
+      SUM(S.STORE_COUNT)       AS storeCount
+    FROM STORE S
+           JOIN SERVICE_CATEGORY SC ON S.SERVICE_INDUSTRY_CODE = SC.SERVICE_CATEGORY_CODE
+    WHERE S.ADMIN_DONG_CODE        = #{adminDongCode}
+      AND S.BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    GROUP BY SC.SERVICE_CATEGORY_NAME
+    ORDER BY storeCount DESC
+    LIMIT 5
+  </select>
+
+  <!-- 행정동 내 업종별 월매출 TOP5 조회 -->
+  <select id="selectSalesTop5"
+    parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+    resultType="com.neogulss.neogulmap.report.dto.ReportDTO$IndustryRankItem">
+    SELECT
+      SC.SERVICE_CATEGORY_NAME    AS industryName,
+      ES.MONTHLY_SALES_AMOUNT     AS monthlySalesAmount
+    FROM ESTIMATED_SALES ES
+           JOIN SERVICE_CATEGORY SC ON ES.SERVICE_INDUSTRY_CODE = SC.SERVICE_CATEGORY_CODE
+    WHERE ES.ADMIN_DONG_CODE        = #{adminDongCode}
+      AND ES.BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+    ORDER BY monthlySalesAmount DESC
+    LIMIT 5
+  </select>
+
   <!-- 현재 분기 추정매출 조회 -->
   <select id="selectEstimatedSales"
     parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"

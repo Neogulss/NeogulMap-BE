@@ -152,4 +152,19 @@ public class ReportController {
         .build();
     return ResponseEntity.ok(response);
   }
+
+  /**
+   * 행정동 내 업종별 점포수 TOP5 + 월매출 TOP5 조회
+   *
+   * @param request ReportDTO.Request (adminDongCode, yearQuarter)
+   * @return ResponseEntity.ok(response)
+   */
+  @PostMapping("/top-industries")
+  public ResponseEntity<BaseResponse<Object>> getTopIndustries(
+      @RequestBody ReportDTO.Request request) {
+    BaseResponse<Object> response = BaseResponse.builder()
+        .data(reportService.getTopIndustries(request))
+        .build();
+    return ResponseEntity.ok(response);
+  }
 }
