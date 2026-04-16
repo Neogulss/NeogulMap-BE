@@ -4,11 +4,11 @@
 
 <mapper namespace="com.neogulss.neogulmap.report.mapper.SalesPredMapper">
 
-    <!-- 월 매출액 예측 피처 조회  -->
-    <select id="selectSalesPredFeatures"
-            parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
-            resultType="com.neogulss.neogulmap.report.dto.SalesPredDTO$DbResult">
+    <select id="selectSalesPredInput"
+            parameterType="com.neogulss.neogulmap.report.dto.SalesPredDTO$SalesUserRequest"
+            resultType="com.neogulss.neogulmap.report.dto.SalesPredDTO$SalesInput">
         SELECT
+            C.BASE_YEAR_QUARTER_CODE AS baseYearQuarterCode,
             C.ADMIN_DONG_CODE AS adminDongCode,
             C.SERVICE_INDUSTRY_CODE AS serviceIndustryCode,
             C.QUARTER_CODE AS quarterCode,
@@ -45,14 +45,69 @@
             S.TOTAL_STORE_COUNT_LAG1 AS totalStoreCountLag1,
             S.TOTAL_POP_LAG1 AS totalPopLag1,
             S.COMPETITION_RATIO AS competitionRatio
-
         FROM REPORT_DATA_COMMON C
-
-        JOIN REPORT_DATA_SALES S
-        ON C.BASE_YEAR_QUARTER_CODE = S.BASE_YEAR_QUARTER_CODE AND C.ADMIN_DONG_CODE = S.ADMIN_DONG_CODE AND C.SERVICE_INDUSTRY_CODE = S.SERVICE_INDUSTRY_CODE
-
-        WHERE
-            C.ADMIN_DONG_CODE = #{adminDongCode} AND C.SERVICE_INDUSTRY_CODE = #{serviceIndustryCode}
+                 JOIN REPORT_DATA_SALES S
+                      ON C.BASE_YEAR_QUARTER_CODE = S.BASE_YEAR_QUARTER_CODE
+                          AND C.ADMIN_DONG_CODE = S.ADMIN_DONG_CODE
+                          AND C.SERVICE_INDUSTRY_CODE = S.SERVICE_INDUSTRY_CODE
+        WHERE C.ADMIN_DONG_CODE = #{adminDongCode}
+          AND C.SERVICE_INDUSTRY_CODE = #{serviceIndustryCode}
+        ORDER BY C.BASE_YEAR_QUARTER_CODE DESC
+        LIMIT 1
     </select>
+
+    <select id="selectSalesPredResult"
+            parameterType="com.neogulss.neogulmap.report.dto.SalesPredDTO$SalesOutput"
+            resultType="com.neogulss.neogulmap.report.dto.SalesPredDTO$SalesOutput">
+        SELECT
+            base_year_quarter_code AS baseYearQuarterCode,
+            pred_year_quarter_code AS predYearQuarterCode,
+            admin_dong_code AS adminDongCode,
+            service_industry_code AS serviceIndustryCode,
+            pred_sales_per_store AS predSalesPerStore,
+            segment AS segment,
+            confidence AS confidence,
+            top_sales_factors AS topSalesFactors,
+            message AS message
+        FROM REPORT_DATA_PRED_SALES_RESULT
+        WHERE base_year_quarter_code = #{baseYearQuarterCode}
+          AND pred_year_quarter_code = #{predYearQuarterCode}
+          AND admin_dong_code = #{adminDongCode}
+          AND service_industry_code = #{serviceIndustryCode}
+        LIMIT 1
+    </select>
+
+    <insert id="upsertSalesPredResult"
+            parameterType="com.neogulss.neogulmap.report.dto.SalesPredDTO$SalesOutput">
+        INSERT INTO REPORT_DATA_PRED_SALES_RESULT (
+            base_year_quarter_code,
+            pred_year_quarter_code,
+            admin_dong_code,
+            service_industry_code,
+            pred_sales_per_store,
+            segment,
+            confidence,
+            top_sales_factors,
+            message
+        ) VALUES (
+            #{baseYearQuarterCode},
+            #{predYearQuarterCode},
+            #{adminDongCode},
+            #{serviceIndustryCode},
+            #{predSalesPerStore},
+            #{segment},
+            #{confidence},
+            #{topSalesFactors},
+            #{message}
+        )
+        ON DUPLICATE KEY UPDATE
+            pred_year_quarter_code = VALUES(pred_year_quarter_code),
+            pred_sales_per_store = VALUES(pred_sales_per_store),
+            segment = VALUES(segment),
+            confidence = VALUES(confidence),
+            top_sales_factors = VALUES(top_sales_factors),
+            message = VALUES(message),
+            updated_at = CURRENT_TIMESTAMP
+    </insert>
 
 </mapper>
