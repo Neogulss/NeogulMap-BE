@@ -1,9 +1,11 @@
 package com.neogulss.neogulmap.report.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neogulss.neogulmap.report.client.FastApiClient;
-import com.neogulss.neogulmap.report.dto.ReportDTO;
 import com.neogulss.neogulmap.report.dto.SalesPredDTO;
 import com.neogulss.neogulmap.report.mapper.SalesPredMapper;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,83 +19,104 @@ public class SalesPredService {
 
     private final SalesPredMapper salesPredMapper;
     private final FastApiClient fastApiClient;
+    private final ObjectMapper objectMapper;
 
     /**
      * 매출 예측 조회
-     * DB에서 피처 조회 → FastAPI 호출 → 예측 결과 반환
+     * 캐시 조회 → DB 피처 조회 → FastAPI 호출 → 예측 결과 저장/반환
      *
-     * @param request ReportDTO.Request
-     * @return SalesPredDTO.Response
+     * @param request SalesPredDTO.SalesUserRequest
+     * @return SalesPredDTO.SalesOutput
      */
-    @Transactional
-    public SalesPredDTO.Response getSalesPredReport(ReportDTO.Request request) {
+    public SalesPredDTO.SalesOutput getSalesPredReport(SalesPredDTO.SalesUserRequest request) {
+        log.info("[{}] 매출 예측 조회 시작 - serviceIndustryCode: [{}]",
+                request.getAdminDongCode(), request.getServiceIndustryCode());
 
-        log.info("[{}] 매출 예측 조회 시작 - yearQuarter: [{}], serviceIndustryCode: [{}]",
-                request.getAdminDongCode(), request.getYearQuarter(), request.getServiceIndustryCode());
-
-        // DB에서 피처 조회 (REPORT_DATA_COMMON + REPORT_DATA_SALES JOIN)
-        SalesPredDTO.DbResult dbResult = salesPredMapper.selectSalesPredFeatures(request);
-
-        if (dbResult == null) {
-            log.warn("[{}] 매출 예측 피처 데이터 없음 - yearQuarter: [{}]",
-                    request.getAdminDongCode(), request.getYearQuarter());
-            return SalesPredDTO.Response.builder()
-                    .predSales(0.0)
+        // 최신 feature 데이터 조회
+        SalesPredDTO.SalesInput salesInput = salesPredMapper.selectSalesPredInput(request);
+        if (salesInput == null) {
+            log.warn("[{}] 매출 예측 피처 데이터 없음", request.getAdminDongCode());
+            return SalesPredDTO.SalesOutput.builder()
+                    .adminDongCode(request.getAdminDongCode())
+                    .serviceIndustryCode(request.getServiceIndustryCode())
                     .segment(-1)
                     .confidence("LOW")
                     .message("해당 행정동/업종의 데이터가 없습니다.")
                     .build();
         }
 
-        // DB 결과 → FastAPI 요청 변환
-        SalesPredDTO.Request fastApiRequest = SalesPredDTO.Request.builder()
-                .quarterCode(dbResult.getQuarterCode())
-                .adminDongCode(dbResult.getAdminDongCode())
-                .serviceIndustryCode(dbResult.getServiceIndustryCode())
-                .salesLag1Log(dbResult.getSalesLag1Log())
-                .salesLag2Log(dbResult.getSalesLag2Log())
-                .salesLag3Log(dbResult.getSalesLag3Log())
-                .salesLag4Log(dbResult.getSalesLag4Log())
-                .salesMa2(dbResult.getSalesMa2())
-                .salesMa3(dbResult.getSalesMa3())
-                .salesStd2(dbResult.getSalesStd2())
-                .salesStd3(dbResult.getSalesStd3())
-                .salesGrowthRate(dbResult.getSalesGrowthRate())
-                .salesToMa3Ratio(dbResult.getSalesToMa3Ratio())
-                .salesChangeRate(dbResult.getSalesChangeRate())
-                .salesToIndustryAvgRatio(dbResult.getSalesToIndustryAvgRatio())
-                .operatingStoreCount(dbResult.getOperatingStoreCount())
-                .totalOperatingStoreCount(dbResult.getTotalOperatingStoreCount())
-                .operatingFranchiseStoreRatio(dbResult.getOperatingFranchiseStoreRatio())
-                .competitionDensity(dbResult.getCompetitionDensity())
-                .competitionRatio(dbResult.getCompetitionRatio())
-                .areaSize(dbResult.getAreaSize())
-                .floatingPopPerStore(dbResult.getFloatingPopPerStore())
-                .floatingPopDensity(dbResult.getFloatingPopDensity())
-                .youngPopRatio(dbResult.getYoungPopRatio())
-                .weekendPopRatio(dbResult.getWeekendPopRatio())
-                .floatingPopTotalLog(dbResult.getFloatingPopTotalLog())
-                .avgMonthlyIncome(dbResult.getAvgMonthlyIncome())
-                .foodExpenditureRatio(dbResult.getFoodExpenditureRatio())
-                .entertainmentExpenditureRatio(dbResult.getEntertainmentExpenditureRatio())
-                .educationExpenditureRatio(dbResult.getEducationExpenditureRatio())
-                .leisureExpenditureRatio(dbResult.getLeisureExpenditureRatio())
-                .totalStoreCountLag1(dbResult.getTotalStoreCountLag1())
-                .totalStoreCountChange(dbResult.getTotalStoreCountChange())
-                .closureRateChange(dbResult.getClosureRateChange())
-                .totalPopLag1(dbResult.getTotalPopLag1())
-                .floatingPopChange(dbResult.getFloatingPopChange())
+        // PK 4개 기준으로 캐시 조회
+        Integer baseYearQuarterCode = salesInput.getBaseYearQuarterCode();
+        Integer predYearQuarterCode = toNextQuarterCode(baseYearQuarterCode);
+
+        SalesPredDTO.SalesOutput cacheKey = SalesPredDTO.SalesOutput.builder()
+                .baseYearQuarterCode(baseYearQuarterCode)
+                .predYearQuarterCode(predYearQuarterCode)
+                .adminDongCode(salesInput.getAdminDongCode())
+                .serviceIndustryCode(salesInput.getServiceIndustryCode())
                 .build();
 
-        // FastAPI 호출
-        log.info("[{}] FastAPI 매출 예측 요청 - adminDongCode: [{}], serviceIndustryCode: [{}]",
-                request.getAdminDongCode(), dbResult.getAdminDongCode(), dbResult.getServiceIndustryCode());
+        SalesPredDTO.SalesOutput cachedResult = salesPredMapper.selectSalesPredResult(cacheKey);
+        if (cachedResult != null) {
+            log.info("[{}] 저장된 매출 예측 결과 반환 - baseYearQuarterCode: [{}], predYearQuarterCode: [{}]",
+                    request.getAdminDongCode(), cacheKey.getBaseYearQuarterCode(), cacheKey.getPredYearQuarterCode());
+            return cachedResult;
+        }
 
-        SalesPredDTO.Response response = fastApiClient.predictSales(fastApiRequest);
+        // FAST API 호출
+        SalesPredDTO.SalesApiRequest apiRequest = SalesPredDTO.SalesApiRequest.from(salesInput);
+        log.info("[{}] FastAPI 매출 예측 요청 - adminDongCode: [{}], serviceIndustryCode: [{}]",
+                request.getAdminDongCode(), salesInput.getAdminDongCode(), salesInput.getServiceIndustryCode());
+
+        SalesPredDTO.SalesApiResponse apiResponse = fastApiClient.predictSales(apiRequest);
+        if (apiResponse == null) {
+            throw new IllegalStateException("예측 서버 응답이 비어 있습니다.");
+        }
+
+        // 결과 저장
+        SalesPredDTO.SalesOutput salesOutput = SalesPredDTO.SalesOutput.builder()
+                .baseYearQuarterCode(cacheKey.getBaseYearQuarterCode())
+                .predYearQuarterCode(cacheKey.getPredYearQuarterCode())
+                .adminDongCode(salesInput.getAdminDongCode())
+                .serviceIndustryCode(salesInput.getServiceIndustryCode())
+                .predSalesPerStore(apiResponse.getPredSales())
+                .segment(apiResponse.getSegment())
+                .confidence(apiResponse.getConfidence())
+                .topSalesFactors(toJson(apiResponse.getTopSalesFactors()))
+                .message(apiResponse.getMessage())
+                .build();
+
+        salesPredMapper.upsertSalesPredResult(salesOutput);
+        SalesPredDTO.SalesOutput savedResult = salesPredMapper.selectSalesPredResult(cacheKey);
 
         log.info("[{}] FastAPI 매출 예측 완료 - predSales: [{}], confidence: [{}]",
-                request.getAdminDongCode(), response.getPredSales(), response.getConfidence());
+                request.getAdminDongCode(), apiResponse.getPredSales(), apiResponse.getConfidence());
 
-        return response;
+        return savedResult != null ? savedResult : salesOutput;
+    }
+
+    private Integer toNextQuarterCode(Integer baseYearQuarterCode) {
+        if (baseYearQuarterCode == null) {
+            return null;
+        }
+
+        int year = baseYearQuarterCode / 10;
+        int quarter = baseYearQuarterCode % 10;
+        if (quarter >= 4) {
+            return ((year + 1) * 10) + 1;
+        }
+        return (year * 10) + (quarter + 1);
+    }
+
+//    private Long toLongValue(BigDecimal value) {
+//        return value == null ? null : value.longValue();
+//    }
+
+    private String toJson(Object value) {
+        try {
+            return value == null ? null : objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("매출 예측 factor 직렬화에 실패했습니다.", e);
+        }
     }
 }

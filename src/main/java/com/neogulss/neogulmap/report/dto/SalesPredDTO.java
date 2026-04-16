@@ -8,10 +8,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 public class SalesPredDTO {
 
     /**
-     * DB 조회 결과 담는 클래스 (REPORT_DATA_COMMON + REPORT_DATA_SALES JOIN)
+     * 프론트 요청 DTO
+     * 현재 ReportDTO.Request를 계속 쓸 거면 이 클래스는 없어도 됨
      */
     @Getter
     @Setter
@@ -19,8 +23,23 @@ public class SalesPredDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @ToString
-    public static class DbResult {
-        // REPORT_DATA_COMMON
+    public static class SalesUserRequest {
+        private Integer adminDongCode;
+        private String serviceIndustryCode;
+    }
+
+    /**
+     * DB 조회 결과 DTO
+     * REPORT_DATA_COMMON + REPORT_DATA_SALES JOIN 결과
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class SalesInput {
+        private Integer baseYearQuarterCode;
         private Integer adminDongCode;
         private String serviceIndustryCode;
         private Integer quarterCode;
@@ -42,7 +61,6 @@ public class SalesPredDTO {
         private Integer floatingPopChange;
         private Float closureRateChange;
 
-        // REPORT_DATA_SALES
         private Float salesLag1Log;
         private Float salesLag2Log;
         private Float salesLag3Log;
@@ -62,8 +80,7 @@ public class SalesPredDTO {
     }
 
     /**
-     * FastAPI로 보내는 요청
-     * @JsonProperty로 FastAPI SalesInput 필드명과 매핑
+     * FastAPI 요청 DTO
      */
     @Getter
     @Setter
@@ -71,7 +88,8 @@ public class SalesPredDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @ToString
-    public static class Request {
+    public static class SalesApiRequest {
+
         @JsonProperty("기준_분기_코드")
         private Integer quarterCode;
 
@@ -179,10 +197,51 @@ public class SalesPredDTO {
 
         @JsonProperty("유동인구_변화_량")
         private Integer floatingPopChange;
+
+        public static SalesApiRequest from(SalesInput input) {
+            return SalesApiRequest.builder()
+                    .quarterCode(input.getQuarterCode())
+                    .adminDongCode(input.getAdminDongCode())
+                    .serviceIndustryCode(input.getServiceIndustryCode())
+                    .salesLag1Log(input.getSalesLag1Log())
+                    .salesLag2Log(input.getSalesLag2Log())
+                    .salesLag3Log(input.getSalesLag3Log())
+                    .salesLag4Log(input.getSalesLag4Log())
+                    .salesMa2(input.getSalesMa2())
+                    .salesMa3(input.getSalesMa3())
+                    .salesStd2(input.getSalesStd2())
+                    .salesStd3(input.getSalesStd3())
+                    .salesGrowthRate(input.getSalesGrowthRate())
+                    .salesToMa3Ratio(input.getSalesToMa3Ratio())
+                    .salesChangeRate(input.getSalesChangeRate())
+                    .salesToIndustryAvgRatio(input.getSalesToIndustryAvgRatio())
+                    .operatingStoreCount(input.getOperatingStoreCount())
+                    .totalOperatingStoreCount(input.getTotalOperatingStoreCount())
+                    .operatingFranchiseStoreRatio(input.getOperatingFranchiseStoreRatio())
+                    .competitionDensity(input.getCompetitionDensity())
+                    .competitionRatio(input.getCompetitionRatio())
+                    .areaSize(input.getAreaSize())
+                    .floatingPopPerStore(input.getFloatingPopPerStore())
+                    .floatingPopDensity(input.getFloatingPopDensity())
+                    .youngPopRatio(input.getYoungPopRatio())
+                    .weekendPopRatio(input.getWeekendPopRatio())
+                    .floatingPopTotalLog(input.getFloatingPopTotalLog())
+                    .avgMonthlyIncome(input.getAvgMonthlyIncome())
+                    .foodExpenditureRatio(input.getFoodExpenditureRatio())
+                    .entertainmentExpenditureRatio(input.getEntertainmentExpenditureRatio())
+                    .educationExpenditureRatio(input.getEducationExpenditureRatio())
+                    .leisureExpenditureRatio(input.getLeisureExpenditureRatio())
+                    .totalStoreCountLag1(input.getTotalStoreCountLag1())
+                    .totalStoreCountChange(input.getTotalStoreCountChange())
+                    .closureRateChange(input.getClosureRateChange())
+                    .totalPopLag1(input.getTotalPopLag1())
+                    .floatingPopChange(input.getFloatingPopChange())
+                    .build();
+        }
     }
 
     /**
-     * FastAPI 응답 담는 클래스
+     * FastAPI 응답 DTO
      */
     @Getter
     @Setter
@@ -190,21 +249,61 @@ public class SalesPredDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @ToString
-    public static class Response {
-        /** 예측 월 매출 (원) */
-        @JsonProperty("pred_sales")
-        private Double predSales;
+    public static class SalesApiResponse {
 
-        /** K-means 구간 (0~3) */
+        @JsonProperty("pred_sales")
+        private Long predSales;
+
         @JsonProperty("segment")
         private Integer segment;
 
-        /** 예측 신뢰도 (HIGH / LOW) */
         @JsonProperty("confidence")
         private String confidence;
 
-        /** 예외 안내 메시지 (정상이면 null) */
+        @JsonProperty("top_sales_factors")
+        private List<TopSalesFactor> topSalesFactors;
+
         @JsonProperty("message")
+        private String message;
+    }
+
+    /**
+     * FastAPI 응답 내부 top factor DTO
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class TopSalesFactor {
+        private String feature;
+
+        @JsonProperty("feature_value")
+        private Object featureValue;
+
+        private BigDecimal impact;
+        private String direction;
+    }
+
+    /**
+     * DB 저장용 DTO
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class SalesOutput {
+        private Integer baseYearQuarterCode;
+        private Integer predYearQuarterCode;
+        private Integer adminDongCode;
+        private String serviceIndustryCode;
+        private Long predSalesPerStore;
+        private Integer segment;
+        private String confidence;
+        private String topSalesFactors;
         private String message;
     }
 }

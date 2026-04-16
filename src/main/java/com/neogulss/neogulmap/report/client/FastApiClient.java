@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface FastApiClient {
 
     @PostMapping("/report_pred/sales")
-    SalesPredDTO.Response predictSales(@RequestBody SalesPredDTO.Request request);
+    SalesPredDTO.SalesApiResponse predictSales(@RequestBody SalesPredDTO.SalesApiRequest request);
 }
