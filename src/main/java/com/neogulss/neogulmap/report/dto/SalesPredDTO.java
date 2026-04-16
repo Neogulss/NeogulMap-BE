@@ -305,5 +305,7 @@ public class SalesPredDTO {
         private String confidence;
         private String topSalesFactors;
         private String message;
+        // AI 응답 저장 DTO
+        private String aiComment;
     }
 }

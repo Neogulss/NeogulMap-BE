@@ -2,10 +2,10 @@ package com.neogulss.neogulmap.report.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.neogulss.neogulmap.salesopenai.service.SalesOpenAiService;
 import com.neogulss.neogulmap.report.client.FastApiClient;
 import com.neogulss.neogulmap.report.dto.SalesPredDTO;
 import com.neogulss.neogulmap.report.mapper.SalesPredMapper;
-import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,7 @@ public class SalesPredService {
     private final SalesPredMapper salesPredMapper;
     private final FastApiClient fastApiClient;
     private final ObjectMapper objectMapper;
+    private final SalesOpenAiService salesOpenAiService;
 
     /**
      * 매출 예측 조회
@@ -58,6 +59,7 @@ public class SalesPredService {
 
         SalesPredDTO.SalesOutput cachedResult = salesPredMapper.selectSalesPredResult(cacheKey);
         if (cachedResult != null) {
+            cachedResult.setAiComment(salesOpenAiService.generateComment(salesInput, cachedResult));
             log.info("[{}] 저장된 매출 예측 결과 반환 - baseYearQuarterCode: [{}], predYearQuarterCode: [{}]",
                     request.getAdminDongCode(), cacheKey.getBaseYearQuarterCode(), cacheKey.getPredYearQuarterCode());
             return cachedResult;
@@ -92,7 +94,9 @@ public class SalesPredService {
         log.info("[{}] FastAPI 매출 예측 완료 - predSales: [{}], confidence: [{}]",
                 request.getAdminDongCode(), apiResponse.getPredSales(), apiResponse.getConfidence());
 
-        return savedResult != null ? savedResult : salesOutput;
+        SalesPredDTO.SalesOutput result = savedResult != null ? savedResult : salesOutput;
+        result.setAiComment(salesOpenAiService.generateComment(salesInput, result));
+        return result;
     }
 
     private Integer toNextQuarterCode(Integer baseYearQuarterCode) {
