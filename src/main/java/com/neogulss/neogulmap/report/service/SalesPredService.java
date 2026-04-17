@@ -2,10 +2,11 @@ package com.neogulss.neogulmap.report.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.neogulss.neogulmap.salesopenai.service.SalesOpenAiService;
 import com.neogulss.neogulmap.report.client.FastApiClient;
+import com.neogulss.neogulmap.report.dto.SalesAiResponseDTO;
 import com.neogulss.neogulmap.report.dto.SalesPredDTO;
 import com.neogulss.neogulmap.report.mapper.SalesPredMapper;
+import com.neogulss.neogulmap.openai.service.SalesOpenAiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,7 @@ public class SalesPredService {
 
         SalesPredDTO.SalesOutput cachedResult = salesPredMapper.selectSalesPredResult(cacheKey);
         if (cachedResult != null) {
-            cachedResult.setAiComment(salesOpenAiService.generateComment(salesInput, cachedResult));
+            ensureAiComment(salesInput, cachedResult, true);
             log.info("[{}] 저장된 매출 예측 결과 반환 - baseYearQuarterCode: [{}], predYearQuarterCode: [{}]",
                     request.getAdminDongCode(), cacheKey.getBaseYearQuarterCode(), cacheKey.getPredYearQuarterCode());
             return cachedResult;
@@ -88,6 +89,7 @@ public class SalesPredService {
                 .message(apiResponse.getMessage())
                 .build();
 
+        ensureAiComment(salesInput, salesOutput, false);
         salesPredMapper.upsertSalesPredResult(salesOutput);
         SalesPredDTO.SalesOutput savedResult = salesPredMapper.selectSalesPredResult(cacheKey);
 
@@ -95,7 +97,7 @@ public class SalesPredService {
                 request.getAdminDongCode(), apiResponse.getPredSales(), apiResponse.getConfidence());
 
         SalesPredDTO.SalesOutput result = savedResult != null ? savedResult : salesOutput;
-        result.setAiComment(salesOpenAiService.generateComment(salesInput, result));
+        ensureAiComment(salesInput, result, false);
         return result;
     }
 
@@ -121,6 +123,52 @@ public class SalesPredService {
             return value == null ? null : objectMapper.writeValueAsString(value);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("매출 예측 factor 직렬화에 실패했습니다.", e);
+        }
+    }
+
+    private void ensureAiComment(
+            SalesPredDTO.SalesInput salesInput,
+            SalesPredDTO.SalesOutput salesOutput,
+            boolean persistWhenGenerated
+    ) {
+        if (salesOutput == null) {
+            return;
+        }
+
+        if (populateAiComment(salesOutput)) {
+            return;
+        }
+
+        SalesAiResponseDTO aiResponse = salesOpenAiService.generateResponse(salesInput, salesOutput);
+        if (aiResponse == null || aiResponse.getText() == null || aiResponse.getText().isBlank()) {
+            salesOutput.setAiComment(null);
+            return;
+        }
+
+        salesOutput.setAiComment(aiResponse.getText());
+        salesOutput.setSalesAiResponse(toJson(aiResponse));
+
+        if (persistWhenGenerated) {
+            salesPredMapper.upsertSalesPredResult(salesOutput);
+        }
+    }
+
+    private boolean populateAiComment(SalesPredDTO.SalesOutput salesOutput) {
+        String salesAiResponse = salesOutput.getSalesAiResponse();
+        if (salesAiResponse == null || salesAiResponse.isBlank()) {
+            salesOutput.setAiComment(null);
+            return false;
+        }
+
+        try {
+            SalesAiResponseDTO aiResponse =
+                    objectMapper.readValue(salesAiResponse, SalesAiResponseDTO.class);
+            salesOutput.setAiComment(aiResponse.getText());
+            return aiResponse.getText() != null && !aiResponse.getText().isBlank();
+        } catch (JsonProcessingException e) {
+            log.warn("[{}] sales_ai_response 파싱 실패", salesOutput.getAdminDongCode(), e);
+            salesOutput.setAiComment(null);
+            return false;
         }
     }
 }

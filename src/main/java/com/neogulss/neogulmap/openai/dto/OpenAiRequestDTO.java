@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OpenAiRequestDTO {
+    // SALES, RISK
     private String model;
     private String instructions;
     private List<InputItem> input;

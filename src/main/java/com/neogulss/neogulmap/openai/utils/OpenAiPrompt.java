@@ -1,5 +1,6 @@
-package com.neogulss.neogulmap.openai;
+package com.neogulss.neogulmap.openai.utils;
 
+import com.neogulss.neogulmap.openai.PromptType;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

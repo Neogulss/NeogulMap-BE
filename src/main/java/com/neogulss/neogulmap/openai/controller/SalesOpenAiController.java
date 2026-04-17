@@ -1,9 +1,8 @@
-package com.neogulss.neogulmap.salesopenai.controller;
+package com.neogulss.neogulmap.openai.controller;
 
 import com.neogulss.neogulmap.common.response.BaseResponse;
-import com.neogulss.neogulmap.salesopenai.dto.OpenAiDTO;
-import com.neogulss.neogulmap.salesopenai.service.OpenAiService;
-import com.neogulss.neogulmap.salesopenai.service.SalesOpenAiService;
+import com.neogulss.neogulmap.openai.dto.SalesOpenAiDTO;
+import com.neogulss.neogulmap.openai.service.SalesOpenAiService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,24 +14,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/openai")
 @RequiredArgsConstructor
-public class OpenAiController {
+public class SalesOpenAiController {
 
-    private final OpenAiService openAiService;
     private final SalesOpenAiService salesOpenAiService;
 
     @PostMapping("/test")
     public ResponseEntity<BaseResponse<Object>> testOpenAi(
-            @Valid @RequestBody OpenAiDTO.TestRequest request) {
+            @Valid @RequestBody SalesOpenAiDTO.TestRequest request) {
         BaseResponse<Object> response = BaseResponse.builder()
-                .data(openAiService.ask(request.getPrompt()))
+                .data(salesOpenAiService.ask(request.getPrompt()))
                 .build();
         return ResponseEntity.ok(response);
     }
 
-    // 매출액 응답 테스트
     @PostMapping("/test/sales-comment")
     public ResponseEntity<BaseResponse<Object>> testSalesComment(
-            @Valid @RequestBody OpenAiDTO.SalesCommentTestRequest request) {
+            @Valid @RequestBody SalesOpenAiDTO.SalesCommentTestRequest request) {
         BaseResponse<Object> response = BaseResponse.builder()
                 .data(salesOpenAiService.testSalesComment(request))
                 .build();

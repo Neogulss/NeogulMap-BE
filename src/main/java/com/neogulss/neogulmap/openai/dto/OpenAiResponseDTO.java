@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OpenAiResponseDTO {
-
+    // SALES, RISK
     private String id;
     private String model;
     private String status;

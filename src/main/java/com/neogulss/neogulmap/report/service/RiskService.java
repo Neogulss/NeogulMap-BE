@@ -2,7 +2,7 @@ package com.neogulss.neogulmap.report.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.neogulss.neogulmap.openai.OpenAiService;
+import com.neogulss.neogulmap.openai.service.RiskOpenAiService;
 import com.neogulss.neogulmap.openai.PromptType;
 import com.neogulss.neogulmap.openai.dto.OpenAiGenerateRequestDTO;
 import com.neogulss.neogulmap.openai.dto.OpenAiGenerateResponseDTO;
@@ -29,14 +29,14 @@ public class RiskService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final String pythonPredRiskUrl;
     private final RiskMapper riskMapper;
-    private final OpenAiService openAiService;
+    private final RiskOpenAiService openAiService;
     private final ObjectMapper objectMapper;
 
     public RiskService(
         @Value("${python.pred.risk-url:${python.ai.risk-url:http://localhost:8002}}")
         String pythonPredRiskUrl,
         RiskMapper riskMapper,
-        OpenAiService openAiService,
+        RiskOpenAiService openAiService,
         ObjectMapper objectMapper
     ) {
         this.pythonPredRiskUrl = pythonPredRiskUrl;
