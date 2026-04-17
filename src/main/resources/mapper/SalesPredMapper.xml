@@ -68,7 +68,8 @@
             segment AS segment,
             confidence AS confidence,
             top_sales_factors AS topSalesFactors,
-            message AS message
+            message AS message,
+            sales_ai_response AS salesAiResponse
         FROM REPORT_DATA_PRED_SALES_RESULT
         WHERE base_year_quarter_code = #{baseYearQuarterCode}
           AND pred_year_quarter_code = #{predYearQuarterCode}
@@ -88,7 +89,8 @@
             segment,
             confidence,
             top_sales_factors,
-            message
+            message,
+            sales_ai_response
         ) VALUES (
             #{baseYearQuarterCode},
             #{predYearQuarterCode},
@@ -98,7 +100,8 @@
             #{segment},
             #{confidence},
             #{topSalesFactors},
-            #{message}
+            #{message},
+            #{salesAiResponse}
         )
         ON DUPLICATE KEY UPDATE
             pred_year_quarter_code = VALUES(pred_year_quarter_code),
@@ -107,6 +110,7 @@
             confidence = VALUES(confidence),
             top_sales_factors = VALUES(top_sales_factors),
             message = VALUES(message),
+            sales_ai_response = VALUES(sales_ai_response),
             updated_at = CURRENT_TIMESTAMP
     </insert>
 

@@ -1,5 +1,6 @@
 package com.neogulss.neogulmap.report.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -305,7 +306,8 @@ public class SalesPredDTO {
         private String confidence;
         private String topSalesFactors;
         private String message;
-        // AI 응답 저장 DTO
+        @JsonIgnore
+        private String salesAiResponse;
         private String aiComment;
     }
 }

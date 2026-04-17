@@ -11,6 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OpenAiGenerateResponseDTO{
+    // RISK
     private String text;
     private String rawJson;
 }

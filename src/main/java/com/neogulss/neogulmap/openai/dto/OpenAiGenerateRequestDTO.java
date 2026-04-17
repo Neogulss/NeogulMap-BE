@@ -14,6 +14,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OpenAiGenerateRequestDTO {
+    // RISK
     private PromptType promptType;
     private Map<String, Object> data;
 }
