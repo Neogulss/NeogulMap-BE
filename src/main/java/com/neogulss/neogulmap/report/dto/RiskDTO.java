@@ -244,7 +244,9 @@ public class RiskDTO {
         private Double riskProb;
         private Double riskClosureRate;
         private String riskLevel;
+        private Double finalClosureRate;
         private String message;
+        private String riskAiResponse;
 
         private String top1FeatureName;
         private String top1FeatureValue;
