@@ -1014,6 +1014,14 @@ public class ReportDTO {
         private int age50SalesCount;
         /** 60대 이상 매출 건수 */
         private int age60AboveSalesCount;
+        /** 직전 분기 대비 증감률 */
+        private Float salesChangeRate;
+        /** 업종 서울 평균 대비 비율 */
+        private Float salesToIndustryAvgRatio;
+        /** 점포당 월 평균 매출 */
+        private Long salesPerStore;
+        /** 값이 NULL 일 때 OK / NO_DATA / ERROR 상태 구분 */
+        private String preQuarterDataStatus;
     }
 
     /**
@@ -1050,6 +1058,23 @@ public class ReportDTO {
         private List<IndustryRankItem> storeTop5;
         /** 업종별 월매출 TOP5 */
         private List<IndustryRankItem> salesTop5;
+    }
+
+    /**
+     * REPORT_DATA_SALES 매출 추세 조회 결과
+     * AI 예측 매출과 비교 표시용
+     */
+    @Alias("PreQuarterData")
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @ToString
+    public static class PreQuarterData {
+        private Float salesChangeRate;              // (원본 금액 기준) 직전 분기 대비 증감률
+        private Float salesToIndustryAvgRatio;      // 업종 서울 평균 대비 비율 (1 이상이면 평균 이상)
+        private Long salesPerStore;                 // 점포당 월 평균 매출 (원)
     }
 
 }
