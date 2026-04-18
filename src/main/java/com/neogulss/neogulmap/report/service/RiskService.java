@@ -165,17 +165,32 @@ public class RiskService {
     }
 
     private Map<String, Object> PromptData(RiskDTO.RiskInput input, RiskDTO.RiskPredApiResponse predResponse) {
-        //최종폐업률
+
         Double finalClosureRate = predResponse.getRiskProb() * predResponse.getRiskClosureRate();
 
+        RiskDTO.TopRiskFactor f1 = getFactor(predResponse.getTopRiskFactors(), 0);
+        RiskDTO.TopRiskFactor f2 = getFactor(predResponse.getTopRiskFactors(), 1);
+        RiskDTO.TopRiskFactor f3 = getFactor(predResponse.getTopRiskFactors(), 2);
+
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("baseYearQuarterCode", input.getBaseYearQuarterCode());
-        data.put("adminDongCode", input.getAdminDongCode());
-        data.put("serviceIndustryCode", input.getServiceIndustryCode());
+
         data.put("finalClosureRate", finalClosureRate);
-        data.put("risk_level", predResponse.getRiskLevel());
-        data.put("top_risk_factors", predResponse.getTopRiskFactors());
-        data.put("model_message", predResponse.getMessage());
+
+        data.put("top1FeatureName", f1 != null ? f1.getFeature() : null);
+        data.put("top1FeatureValue", f1 != null ? f1.getFeatureValue() : null);
+        data.put("top1Impact", f1 != null ? f1.getImpact() : null);
+        data.put("top1Direction", f1 != null ? f1.getDirection() : null);
+
+        data.put("top2FeatureName", f2 != null ? f2.getFeature() : null);
+        data.put("top2FeatureValue", f2 != null ? f2.getFeatureValue() : null);
+        data.put("top2Impact", f2 != null ? f2.getImpact() : null);
+        data.put("top2Direction", f2 != null ? f2.getDirection() : null);
+
+        data.put("top3FeatureName", f3 != null ? f3.getFeature() : null);
+        data.put("top3FeatureValue", f3 != null ? f3.getFeatureValue() : null);
+        data.put("top3Impact", f3 != null ? f3.getImpact() : null);
+        data.put("top3Direction", f3 != null ? f3.getDirection() : null);
+
         return data;
     }
 }
