@@ -1,6 +1,7 @@
 package com.neogulss.neogulmap.openai.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neogulss.neogulmap.openai.client.OpenAiClient;
 import com.neogulss.neogulmap.openai.dto.OpenAiClientResponseDTO;
@@ -12,6 +13,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -29,7 +32,6 @@ public class SalesOpenAiService {
     private final ObjectMapper objectMapper;
 
     /**
-     * 가장 단순한 OpenAI 테스트용 호출이다.
      * 컨트롤러에서 받은 프롬프트를 그대로 OpenAI에 보내고, 화면에 보여줄 최소 응답만 만든다.
      */
     public SalesOpenAiDTO.TextResponse ask(String prompt) {
@@ -46,7 +48,7 @@ public class SalesOpenAiService {
     }
 
     /**
-     * 매출 예측 결과를 사람이 읽을 설명으로 바꾸는 메인 업무 로직이다.
+     * 매출 예측 결과를 사람이 읽을 설명으로 바꾸는 메인 업무 로직
      * 프롬프트를 조립하고 OpenAI를 호출한 뒤, DB에 저장할 응답 형태로 다시 포장한다.
      */
     public SalesAiResponseDTO generateResponse(
@@ -54,8 +56,9 @@ public class SalesOpenAiService {
             SalesPredDTO.SalesOutput salesOutput
     ) {
         try {
-            String prompt = buildSalesCommentPrompt(salesInput, salesOutput, null);
-            SalesOpenAiDTO.TextResponse aiResponse = ask(prompt);
+            String instruction = resolveInstruction(null);
+            SalesAiPromptDTO promptData = buildPromptData(salesInput, salesOutput);
+            OpenAiClientResponseDTO aiResponse = openAiClient.generate(instruction, toJson(promptData));
             return SalesAiResponseDTO.builder()
                     .text(aiResponse.getText())
                     .model(aiResponse.getModel())
@@ -64,45 +67,66 @@ public class SalesOpenAiService {
                     .generatedAt(Instant.now().toString())
                     .build();
         } catch (Exception e) {
+            Integer adminDongCode = salesOutput != null
+                    ? salesOutput.getAdminDongCode()
+                    : (salesInput != null ? salesInput.getAdminDongCode() : null);
             log.warn("[{}] OpenAI 매출 설명 생성 실패 - reason: {}",
-                    salesOutput.getAdminDongCode(), e.getMessage());
+                    adminDongCode, e.getMessage());
             return null;
         }
     }
 
     public SalesOpenAiDTO.PromptTestResponse testSalesComment(SalesOpenAiDTO.SalesCommentTestRequest request) {
-        String prompt = buildSalesCommentPrompt(
+        String instruction = resolveInstruction(request.getInstructionOverride());
+        SalesAiPromptDTO promptData = buildPromptData(
                 request.getSalesInput(),
-                request.getSalesOutput(),
-                request.getInstructionOverride()
+                request.getSalesOutput()
         );
 
-        SalesOpenAiDTO.TextResponse aiResponse = ask(prompt);
+        OpenAiClientResponseDTO aiResponse = openAiClient.generate(instruction, toJson(promptData));
         return SalesOpenAiDTO.PromptTestResponse.builder()
                 .model(aiResponse.getModel())
-                .prompt(prompt)
+                .prompt(buildPromptPreview(instruction, promptData))
                 .text(aiResponse.getText())
                 .build();
     }
 
-    /**
-     * 매출 입력값과 예측 결과를 하나의 프롬프트 문자열로 합친다.
-     * instruction 부분은 템플릿에서 읽고, 실제 데이터는 JSON으로 뒤에 붙인다.
-     */
-    private String buildSalesCommentPrompt(
+    private SalesAiPromptDTO buildPromptData(
             SalesPredDTO.SalesInput salesInput,
-            SalesPredDTO.SalesOutput salesOutput,
-            String instructionOverride
+            SalesPredDTO.SalesOutput salesOutput
     ) {
-        SalesAiPromptDTO promptData = SalesAiPromptDTO.from(salesInput, salesOutput);
+        List<SalesPredDTO.TopSalesFactor> topSalesFactors = parseTopSalesFactors(
+                salesOutput != null ? salesOutput.getTopSalesFactors() : null
+        );
+        return SalesAiPromptDTO.from(salesInput, salesOutput, topSalesFactors);
+    }
+
+    private String buildPromptPreview(String instruction, SalesAiPromptDTO promptData) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append(resolveInstruction(instructionOverride));
+        prompt.append(instruction);
         if (!prompt.toString().endsWith("\n\n")) {
             prompt.append("\n\n");
         }
         prompt.append("입력 데이터(JSON):\n");
         prompt.append(toJson(promptData));
         return prompt.toString();
+    }
+
+    private List<SalesPredDTO.TopSalesFactor> parseTopSalesFactors(String rawTopSalesFactors) {
+        if (rawTopSalesFactors == null || rawTopSalesFactors.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            return objectMapper.readValue(
+                    rawTopSalesFactors,
+                    new TypeReference<List<SalesPredDTO.TopSalesFactor>>() {
+                    }
+            );
+        } catch (JsonProcessingException e) {
+            log.warn("topSalesFactors 파싱 실패 - reason: {}", e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     private String resolveInstruction(String instructionOverride) {

@@ -544,4 +544,18 @@
       AND BASE_YEAR_QUARTER_CODE = #{yearQuarter} - 10
   </select>
 
+  <!-- AI 매출 예측과 비교할 데이터 조회 -->
+  <select id = "selectPreQuarterData"
+          parameterType="com.neogulss.neogulmap.report.dto.ReportDTO$Request"
+          resultType="com.neogulss.neogulmap.report.dto.ReportDTO$PreQuarterData">
+    SELECT
+      SALES_CHANGE_RATE           AS salesChangeRate,
+      SALES_TO_INDUSTRY_AVG_RATIO AS salesToIndustryAvgRatio,
+      SALES_PER_STORE             AS salesPerStore
+    FROM REPORT_DATA_SALES
+    WHERE ADMIN_DONG_CODE       = #{adminDongCode}
+      AND SERVICE_INDUSTRY_CODE = #{serviceIndustryCode}
+      AND BASE_YEAR_QUARTER_CODE = #{yearQuarter}
+  </select>
+
 </mapper>

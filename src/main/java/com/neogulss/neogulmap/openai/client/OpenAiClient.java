@@ -7,6 +7,7 @@ import com.neogulss.neogulmap.openai.dto.OpenAiRequestDTO;
 import com.neogulss.neogulmap.openai.dto.OpenAiResponseDTO;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OpenAiClient {
@@ -56,6 +58,8 @@ public class OpenAiClient {
                                 .build()
                 ))
                 .build();
+        // OpenAI로 나가는 데이터 확인
+        // log.info("OpenAI request body: {}", toJson(requestBody));
 
         HttpEntity<OpenAiRequestDTO> entity = new HttpEntity<>(requestBody, headers);
         ResponseEntity<OpenAiResponseDTO> response = restTemplate.exchange(

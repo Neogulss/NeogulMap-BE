@@ -244,4 +244,13 @@ public interface ReportMapper {
      * @return ReportDTO.SalesTotalResult
      */
     ReportDTO.SalesTotalResult selectPrevYearSales(ReportDTO.Request request);
+
+    /**
+     * REPORT_DATA_SALES 매출 추세 피처 조회
+     * AI 예측 매출과 비교 표시용
+     *
+     * @param request ReportDTO.Request
+     * @return ReportDTO.PreQuarterData
+     */
+    ReportDTO.PreQuarterData selectPreQuarterData(ReportDTO.Request request);
 }
