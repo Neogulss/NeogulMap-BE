@@ -2,7 +2,9 @@ package com.neogulss.neogulmap.report.controller;
 
 
 import com.neogulss.neogulmap.common.response.BaseResponse;
+import com.neogulss.neogulmap.report.dto.OpinionDTO;
 import com.neogulss.neogulmap.report.dto.ReportDTO;
+import com.neogulss.neogulmap.report.service.OpinionService;
 import com.neogulss.neogulmap.report.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReportController {
 
   private final ReportService reportService;
+  private final OpinionService opinionService;
 
   /**
    * 점포수, 개업, 폐업, 업종분포, 평균영업기간 조회
@@ -164,6 +167,21 @@ public class ReportController {
       @RequestBody ReportDTO.Request request) {
     BaseResponse<Object> response = BaseResponse.builder()
         .data(reportService.getTopIndustries(request))
+        .build();
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * 상권 종합의견 AI 생성
+   *
+   * @param request OpinionDTO.Request
+   * @return ResponseEntity.ok(response)
+   */
+  @PostMapping("/opinion")
+  public ResponseEntity<BaseResponse<Object>> getOpinion(
+      @RequestBody OpinionDTO.Request request) {
+    BaseResponse<Object> response = BaseResponse.builder()
+        .data(opinionService.generateOpinion(request))
         .build();
     return ResponseEntity.ok(response);
   }
