@@ -112,6 +112,10 @@ public class SalesOpenAiService {
         return prompt.toString();
     }
 
+    /**
+     * 문자열을 다시 파싱해서 리스트로 역직렬화
+     * SalesAiPromptDTO.java에서는 topSalesFactors 타입이 List<SalesPredDTO.TopSalesFactor>
+     */
     private List<SalesPredDTO.TopSalesFactor> parseTopSalesFactors(String rawTopSalesFactors) {
         if (rawTopSalesFactors == null || rawTopSalesFactors.isBlank()) {
             return Collections.emptyList();
